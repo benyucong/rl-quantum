@@ -308,3 +308,6 @@ verl_step_records/
 /test*
 /*.json
 /*.txt
+
+# hpc cache
+*WRKDIR/
