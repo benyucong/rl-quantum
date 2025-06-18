@@ -1,0 +1,7 @@
+Bootstrap: docker
+From: nvcr.io/nvidia/nightly/cuda-quantum:cu12-latest
+
+%runscript
+    mount devpts /dev/pts -t devpts
+    cp -r /home/cudaq/* .
+    bash
