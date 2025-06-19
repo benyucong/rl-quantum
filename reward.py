@@ -15,7 +15,7 @@ def syntax_reward(circuit_string: str) -> float:
         loads(circuit_string)
         return 1.0  # Valid syntax
     except Exception:
-        return 0.0  # Invalid syntax
+        return -1.0  # Invalid syntax
     
 
 def KL_divergence_reward(circuit_string: str, ground_truth: dict) -> float:
@@ -57,6 +57,7 @@ def expectation_value_reward(circuit_string: str, ground_truth: dict) -> float:
     smallest_eigenvalue = json.loads(ground_truth["exact_solution"])["smallest_eigenvalues"][0]
     expectation_value = statevector.expectation_value(cost_hamiltonian).real
 
-    # Normalize the expectation value to be between 0 and 1
-    normalized_expectation_value = (smallest_eigenvalue - expectation_value) / smallest_eigenvalue
+    # Normalize the expectation value
+    print(f"Expectation Value: {expectation_value}, Smallest Eigenvalue: {smallest_eigenvalue}")
+    normalized_expectation_value = np.abs(expectation_value - smallest_eigenvalue) / np.abs(smallest_eigenvalue)
     return 1 - normalized_expectation_value
