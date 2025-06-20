@@ -153,7 +153,7 @@ def set_limits():
     # File size limit (500 MB)
     resource.setrlimit(resource.RLIMIT_FSIZE, (500*1024*1024, 500*1024*1024))
 
-def execute_python(code: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Optional[str] = None, python_path: str = None, pre_import_lib: bool = False, use_firejail: bool=False) -> Tuple[str, bool]:
+def execute_python(circuit_string: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Optional[str] = None, python_path: str = None, pre_import_lib: bool = False, use_firejail: bool=False) -> Tuple[str, bool]:
     """
     Execute Python code in a Firejail sandbox with a timeout.
     
@@ -164,9 +164,6 @@ def execute_python(code: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Opt
     Returns:
         String containing execution output or error message
     """
-    # Check for forbidden imports first
-    if check_forbidden_imports(code):
-        return "", "Execution blocked: Code contains potentially dangerous operations or imports.", True
     
     # Create a minimal environment instead of copying everything
     original_env = os.environ.copy()
@@ -227,11 +224,11 @@ def execute_python(code: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Opt
             "--rlimit-fsize=2m",  # Limit file size
             "--rlimit-as=1096m"  # Limit address space
         ]
-        command.extend([python_path, file_path])
+        command.extend([python_path, "./utils/quantum_syntax_reward.py", file_path])
         subprocess_cwd = cwd
     else:
         env = original_env
-        command = [python_path, file_name]
+        command = [python_path, "./utils/quantum_syntax_reward.py", file_name]
         subprocess_cwd = cwd  # Use the temporary directory as the current working directory
 
     has_error = False
@@ -272,7 +269,7 @@ def execute_python(code: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Opt
 
 @register_tool
 class PythonCodeTool(BaseTool):
-    tool_type = "python_code"
+    tool_type = "quantum_cpu"
     timeout = TIMEOUT
     stop_tokens = ["```output", "<output>", "<tool_call>"]
     enable_history_code_execution = False
