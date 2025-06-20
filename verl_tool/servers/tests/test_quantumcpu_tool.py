@@ -35,9 +35,9 @@ def test_qasm(
     # action = """```<qasm>import time\ntime.sleep(30)\nprint('Hello from Python!')</qasm> ... <qasm>print('Hello again!')</qasm>``` ..."""
     # print(_send_test_request(url, trajectory_id, action, "Python"))
     
-    print("--- Testing 6 ---") # syntax error
-    action = """```<qasm>OPENQASM 3.0;\ninclude "stdgates.inc";\nqudit[2] q;\nh q[0];\ncx q[0], q[1];</qasm> ..."""
-    print(_send_test_request(url, trajectory_id, action, "Python"))
+    # print("--- Testing 6 ---") # syntax error
+    # action = """```<qasm>OPENQASM 3.0;\ninclude "stdgates.inc";\nqudit[2] q;\nh q[0];\ncx q[0], q[1];</qasm> ..."""
+    # print(_send_test_request(url, trajectory_id, action, "Python"))
 
     # print("--- Testing 7 ---") # memory limit
     # action = """```<qasm>\nimport numpy as np\nx = np.random.rand(5000, 5000)\nsize_of_x_in_bytes = x.nbytes\nprint(f'Memory test completed after allocating a {len(x)}x{len(x[0])} array, which is {size_of_x_in_bytes / (1024 * 1024):.2f} MB.')</qasm> ...```"""

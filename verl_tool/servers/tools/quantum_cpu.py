@@ -153,7 +153,7 @@ def set_limits():
     # File size limit (500 MB)
     resource.setrlimit(resource.RLIMIT_FSIZE, (500*1024*1024, 500*1024*1024))
 
-def execute_python(circuit_string: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Optional[str] = None, python_path: str = None, pre_import_lib: bool = False, use_firejail: bool=False) -> Tuple[str, bool]:
+def execute_python(code: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Optional[str] = None, python_path: str = None, pre_import_lib: bool = False, use_firejail: bool=False) -> Tuple[str, bool]:
     """
     Execute Python code in a Firejail sandbox with a timeout.
     
@@ -167,6 +167,9 @@ def execute_python(circuit_string: Union[str, List[str]], timeout: int=TIMEOUT, 
     
     # Create a minimal environment instead of copying everything
     original_env = os.environ.copy()
+    
+    # Get the absolute path to quantum_syntax_reward.py
+    reward_script_path = os.path.abspath(os.path.join(os.getcwd(), "verl_tool/servers/tools/utils/quantum_syntax_reward.py"))
     
     # set cwd to be a temp dir
     cwd = os.path.join(os.getcwd(), "tmp/firejail", str(uuid.uuid4().hex)) # local tmp dir
@@ -224,11 +227,11 @@ def execute_python(circuit_string: Union[str, List[str]], timeout: int=TIMEOUT, 
             "--rlimit-fsize=2m",  # Limit file size
             "--rlimit-as=1096m"  # Limit address space
         ]
-        command.extend([python_path, "./utils/quantum_syntax_reward.py", file_path])
+        command.extend([python_path, reward_script_path, file_path])
         subprocess_cwd = cwd
     else:
         env = original_env
-        command = [python_path, "./utils/quantum_syntax_reward.py", file_name]
+        command = [python_path, reward_script_path, file_name]
         subprocess_cwd = cwd  # Use the temporary directory as the current working directory
 
     has_error = False
@@ -341,10 +344,10 @@ class PythonCodeTool(BaseTool):
             Tuple containing the extracted code and a validity flag
         """
         # Try to find Python code in various formats
-        all_valid_python_code = re.findall(r"<python>(.*?)</python>", action, re.DOTALL)
+        all_valid_python_code = re.findall(r"<qasm>(.*?)</qasm>", action, re.DOTALL)
         
         if not all_valid_python_code:
-            all_valid_python_code = re.findall(r"```\n?python(.*?)```", action, re.DOTALL)
+            all_valid_python_code = re.findall(r"```\n?qasm(.*?)```", action, re.DOTALL)
         
         # if not all_valid_python_code:
         #     all_valid_python_code = re.findall(r"<tool_call>(.*?)</tool_call>", action, re.DOTALL)
@@ -408,16 +411,16 @@ class PythonCodeTool(BaseTool):
                 observation = "\n```output\n" + observation + "\n```\n"
             elif action.endswith("<output>"):
                 observation = "\n" + observation + "\n</output>\n"
-            elif action.endswith("</python>") or "</python>" in action:
+            elif action.endswith("</qasm>") or "</qasm>" in action:
                 observation = "\n<output>\n" + observation + "\n</output>\n"
             elif "<|calling system for feedback|>" in action:
-                if "```python" in action:
+                if "```qasm" in action:
                     observation = "\n```output\n" + observation + "\n```\n"
-                elif "<python>" in action:
+                elif "<qasm>" in action:
                     observation = "\n<output>\n" + observation + "\n</output>\n"
                 else:
                     observation = "\n" + observation + "\n"
-            elif action.strip(' \n').endswith("```") or "```python" in action:
+            elif action.strip(' \n').endswith("```") or "```qasm" in action:
                 if action.count("```") % 2 == 0:
                     observation = "\n```output\n" + observation + "\n```\n"
                 else:

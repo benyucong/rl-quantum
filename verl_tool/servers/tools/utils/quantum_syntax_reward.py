@@ -153,10 +153,10 @@ def main(file_path: str) -> float:
         return reward
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.")
-        return -1.0
+        return -100
     except Exception as e:
         print(f"Error: {e}")
-        return -1.0
+        return -100
 
 # Example usage
 if __name__ == "__main__":
@@ -166,4 +166,5 @@ if __name__ == "__main__":
     else:
         file_path = sys.argv[1]
         result = main(file_path)
-        print(f"Syntax Reward: {result}")
+        print(f"Syntax Reward: {result}") 
+    exit(0)
