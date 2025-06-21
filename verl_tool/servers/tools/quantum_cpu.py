@@ -271,7 +271,7 @@ def execute_python(code: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Opt
     return stdout, stderr, has_error
 
 @register_tool
-class PythonCodeTool(BaseTool):
+class QASMCodeTool(BaseTool):
     tool_type = "quantum_cpu"
     timeout = TIMEOUT
     stop_tokens = ["```output", "<output>", "<tool_call>"]

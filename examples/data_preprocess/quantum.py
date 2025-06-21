@@ -125,13 +125,11 @@ def main(
     local_dir_post_fix += f"-{propmt_type}"
     local_dir = local_dir / (dataset_path.split('/')[-1] + local_dir_post_fix)
     local_dir.mkdir(parents=True, exist_ok=True)
-    
-    dataset = datasets.load_dataset(dataset_path, split='train')
 
     # 500 examples for testing
     # dataset = dataset.train_test_split(test_size=500, seed=42) 
-    train_dataset = dataset['train']
-    test_dataset = dataset['test']
+    train_dataset = datasets.load_dataset(dataset_path, split='train')
+    test_dataset = datasets.load_dataset(dataset_path, split='test')
 
     # add a row to each data item that represents a unique id
     def make_map_fn(split):
