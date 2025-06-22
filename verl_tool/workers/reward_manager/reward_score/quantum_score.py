@@ -1,3 +1,4 @@
+# reward score for quatum qasm
 from qiskit.quantum_info import Statevector, SparsePauliOp
 from scipy.stats import entropy
 import numpy as np
@@ -83,9 +84,12 @@ def syntax_reward(circuit_string: str) -> float:
     A simple reward function that checks if the circuit string is valid QASM syntax.
     Returns 1.0 for valid syntax, 0.0 otherwise.
     """
-    # Attempt to parse the circuit string as QASM
-    loads(circuit_string)
-
+    try:
+        # Attempt to parse the circuit string as QASM
+        loads(circuit_string)
+        return 1.0  # Valid syntax
+    except Exception:
+        return -1.0  # Invalid syntax
     
 
 def KL_divergence_reward(circuit_string: str, ground_truth: dict) -> float:
@@ -132,36 +136,36 @@ def expectation_value_reward(circuit_string: str, ground_truth: dict) -> float:
     normalized_expectation_value = np.abs(expectation_value - smallest_eigenvalue) / np.abs(smallest_eigenvalue)
     return 1 - normalized_expectation_value
 
-def main(file_path: str) -> float:
-    """
-    Args:
-        file_path (str): Path to the file containing the quantum circuit in QASM format.
+# def main(file_path: str) -> float:
+#     """
+#     Args:
+#         file_path (str): Path to the file containing the quantum circuit in QASM format.
 
-    Returns:
-        float: The syntax reward (1.0 for valid syntax, -1.0 for invalid syntax).
-    """
-    try:
-        # Read the circuit string from the file
-        with open(file_path, "r") as file:
-            circuit_string = file.read()
+#     Returns:
+#         float: The syntax reward (1.0 for valid syntax, -1.0 for invalid syntax).
+#     """
+#     try:
+#         # Read the circuit string from the file
+#         with open(file_path, "r") as file:
+#             circuit_string = file.read()
         
-        # Compute the syntax reward
-        reward = syntax_reward(circuit_string)
-        return reward
-    except FileNotFoundError:
-        print(f"Error: File '{file_path}' not found.")
-        return -100
-    except Exception as e:
-        print(f"Error: {e}")
-        return -100
+#         # Compute the syntax reward
+#         reward = syntax_reward(circuit_string)
+#         return reward
+#     except FileNotFoundError:
+#         print(f"Error: File '{file_path}' not found.")
+#         return -100
+#     except Exception as e:
+#         print(f"Error: {e}")
+#         return -100
 
-# Example usage
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) != 2:
-        print("Usage: python reward.py <file_path>")
-    else:
-        file_path = sys.argv[1]
-        result = main(file_path)
-        print(f"Syntax Reward: {result}") 
-    exit(0)
+# # Example usage
+# if __name__ == "__main__":
+#     import sys
+#     if len(sys.argv) != 2:
+#         print("Usage: python reward.py <file_path>")
+#     else:
+#         file_path = sys.argv[1]
+#         result = main(file_path)
+#         print(f"Syntax Reward: {result}") 
+#     exit(0)

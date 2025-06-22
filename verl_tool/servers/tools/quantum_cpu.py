@@ -379,7 +379,6 @@ class QASMCodeTool(BaseTool):
         env = self.load_env(trajectory_id)
         
         if not is_valid:
-            # observation = "No valid Python code found. Please provide code in either <python>...</python> tags or ```python...``` code blocks."
             observation = ""
             execution_result = ""
             done = False
