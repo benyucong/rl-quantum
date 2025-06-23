@@ -1,0 +1,91 @@
++ dataset_name=deepmath_torl
+++ pwd
++ train_data=/scratch/cs/adis/yuc10/rl-quantum/data/deepmath_torl/train.parquet
+++ pwd
+++ pwd
+++ pwd
+++ pwd
++ val_data='[/scratch/cs/adis/yuc10/rl-quantum/data/deepmath_torl/test.parquet,/scratch/cs/adis/yuc10/rl-quantum/data/deepmath_torl/math500_test.parquet,/scratch/cs/adis/yuc10/rl-quantum/data/deepmath_torl/aime24_test.parquet,/scratch/cs/adis/yuc10/rl-quantum/data/deepmath_torl/aime25_test.parquet]'
++ model_name=Qwen/Qwen2.5-Math-1.5B
++ rl_alg=grpo
++ n_gpus_per_node=4
++ n_nodes=1
++ n=16
++ batch_size=128
++ ppo_mini_batch_size=128
++ max_prompt_length=1024
++ max_response_length=3072
++ max_obs_length=512
++ temperature=1.0
++ top_p=1.0
++ enable_agent=True
++ strategy=fsdp
++ action_stop_tokens='```output'
++ max_turns=1
++ kl_loss_coef=0.0
++ kl_coef=0
++ entropy_coeff=0
++ kl_loss_type=low_var_kl
++ lr=1e-6
++ reward_manager=torl
++ ppo_micro_batch_size_per_gpu=1
++ log_prob_micro_batch_size_per_gpu=8
++ tensor_model_parallel_size=1
++ gpu_memory_utilization=0.6
++ do_offload=True
++ use_dynamic_bsz=True
++ ulysses_sequence_parallel_size=1
++ fsdp_size=-1
++ additional_eos_token_ids='[151645]'
++ mask_observations=True
++ enable_mtrl=False
++ max_action_length=2048
+++ echo Qwen/Qwen2.5-Math-1.5B
+++ tr / _
+++ tr '[:upper:]' '[:lower:]'
++ model_pretty_name=qwen_qwen2.5-math-1.5b
++ run_name_postfix=debug
++ '[' True = True ']'
++ run_name=torl-fsdp-agent-qwen_qwen2.5-math-1.5b-grpo-n16-b128-t1.0-lr1e-6debug
++ export VERL_RUN_ID=torl-fsdp-agent-qwen_qwen2.5-math-1.5b-grpo-n16-b128-t1.0-lr1e-6debug
++ VERL_RUN_ID=torl-fsdp-agent-qwen_qwen2.5-math-1.5b-grpo-n16-b128-t1.0-lr1e-6debug
++ export NCCL_DEBUG=INFO
++ NCCL_DEBUG=INFO
++ export VLLM_USE_V1=1
++ VLLM_USE_V1=1
++ rollout_mode=async
+++ pwd
+++ mktemp
++ action_stop_tokens_file=/scratch/cs/adis/yuc10/rl-quantum/tmp/tmp.SUl845HtIZ
+++ dirname /scratch/cs/adis/yuc10/rl-quantum/tmp/tmp.SUl845HtIZ
++ mkdir -p /scratch/cs/adis/yuc10/rl-quantum/tmp
++ echo -e -n '```output'
++ tee /scratch/cs/adis/yuc10/rl-quantum/tmp/tmp.SUl845HtIZ
+```output+ echo action_stop_tokens_file=/scratch/cs/adis/yuc10/rl-quantum/tmp/tmp.SUl845HtIZ
+action_stop_tokens_file=/scratch/cs/adis/yuc10/rl-quantum/tmp/tmp.SUl845HtIZ
+++ hostname -i
+++ awk '{print $1}'
++ host=10.30.246.57
+++ shuf -i 30000-31000 -n 1
++ port=30289
++ tool_server_url=http://10.30.246.57:30289/get_observation
++ server_pid=2789191
++ echo 'Server (pid=2789191) started at http://10.30.246.57:30289/get_observation'
+Server (pid=2789191) started at http://10.30.246.57:30289/get_observation
++ python -m verl_tool.servers.serve --host 10.30.246.57 --port 30289 --tool_type python_code --workers_per_tool 8
++ PYTHONUNBUFFERED=1
++ python3 -m verl_tool.trainer.main_ppo algorithm.adv_estimator=grpo data.train_files=/scratch/cs/adis/yuc10/rl-quantum/data/deepmath_torl/train.parquet 'data.val_files=[/scratch/cs/adis/yuc10/rl-quantum/data/deepmath_torl/test.parquet,/scratch/cs/adis/yuc10/rl-quantum/data/deepmath_torl/math500_test.parquet,/scratch/cs/adis/yuc10/rl-quantum/data/deepmath_torl/aime24_test.parquet,/scratch/cs/adis/yuc10/rl-quantum/data/deepmath_torl/aime25_test.parquet]' data.train_batch_size=128 data.val_batch_size=1024 data.max_prompt_length=1024 data.max_response_length=3072 data.truncation=right reward_model.reward_manager=torl reward_model.launch_reward_fn_async=True actor_rollout_ref.model.path=Qwen/Qwen2.5-Math-1.5B actor_rollout_ref.model.enable_gradient_checkpointing=True actor_rollout_ref.actor.optim.lr=1e-6 actor_rollout_ref.actor.optim.lr_warmup_steps=10 actor_rollout_ref.model.use_remove_padding=True actor_rollout_ref.model.trust_remote_code=True 'actor_rollout_ref.actor.checkpoint.save_contents=[model,optimizer,extra,hf_model]' actor_rollout_ref.actor.ppo_mini_batch_size=128 actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=1 actor_rollout_ref.actor.use_dynamic_bsz=True actor_rollout_ref.actor.use_kl_loss=True actor_rollout_ref.actor.strategy=fsdp actor_rollout_ref.actor.kl_loss_coef=0.0 actor_rollout_ref.actor.kl_loss_type=low_var_kl actor_rollout_ref.actor.entropy_coeff=0 actor_rollout_ref.actor.fsdp_config.param_offload=True actor_rollout_ref.actor.fsdp_config.optimizer_offload=True actor_rollout_ref.actor.fsdp_config.fsdp_size=-1 actor_rollout_ref.actor.ulysses_sequence_parallel_size=1 +actor_rollout_ref.actor.enable_agent=True +actor_rollout_ref.agent.tool_server_url=http://10.30.246.57:30289/get_observation +actor_rollout_ref.agent.max_prompt_length=1024 +actor_rollout_ref.agent.max_response_length=3072 +actor_rollout_ref.agent.max_start_length=1024 +actor_rollout_ref.agent.max_obs_length=512 +actor_rollout_ref.agent.max_turns=1 +actor_rollout_ref.agent.num_gpus=4 '+actor_rollout_ref.agent.additional_eos_token_ids=[151645]' +actor_rollout_ref.agent.mask_observations=True +actor_rollout_ref.agent.action_stop_tokens=/scratch/cs/adis/yuc10/rl-quantum/tmp/tmp.SUl845HtIZ +actor_rollout_ref.agent.enable_mtrl=False +actor_rollout_ref.agent.max_action_length=2048 actor_rollout_ref.rollout.tensor_model_parallel_size=1 actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu=8 actor_rollout_ref.rollout.enforce_eager=False actor_rollout_ref.rollout.free_cache_engine=False actor_rollout_ref.rollout.name=vllm actor_rollout_ref.rollout.gpu_memory_utilization=0.6 actor_rollout_ref.rollout.temperature=1.0 actor_rollout_ref.rollout.top_p=1.0 actor_rollout_ref.rollout.top_k=-1 actor_rollout_ref.rollout.n=16 actor_rollout_ref.rollout.log_prob_use_dynamic_bsz=True actor_rollout_ref.rollout.max_num_seqs=512 actor_rollout_ref.rollout.mode=async actor_rollout_ref.ref.log_prob_use_dynamic_bsz=True actor_rollout_ref.ref.fsdp_config.param_offload=True actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=8 actor_rollout_ref.ref.ulysses_sequence_parallel_size=1 critic.optim.lr=1e-5 critic.strategy=fsdp critic.model.path=Qwen/Qwen2.5-Math-1.5B critic.model.fsdp_config.fsdp_size=-1 critic.ppo_micro_batch_size_per_gpu=1 critic.ulysses_sequence_parallel_size=1 algorithm.kl_ctrl.kl_coef=0 'trainer.logger=[console,wandb]' trainer.project_name=torl trainer.experiment_name=torl-fsdp-agent-qwen_qwen2.5-math-1.5b-grpo-n16-b128-t1.0-lr1e-6debug trainer.val_before_train=True trainer.default_hdfs_dir=null trainer.n_gpus_per_node=4 trainer.nnodes=1 +trainer.remove_previous_ckpt_in_save=False trainer.save_freq=10 trainer.test_freq=10 trainer.total_epochs=10
+Traceback (most recent call last):
+  File "/home/yuc10/.local/share/uv/python/cpython-3.10.18-linux-x86_64-gnu/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/home/yuc10/.local/share/uv/python/cpython-3.10.18-linux-x86_64-gnu/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/scratch/cs/adis/yuc10/rl-quantum/verl_tool/trainer/main_ppo.py", line 21, in <module>
+    from verl_tool.trainer.ppo.ray_trainer import AgentRayPPOTrainer as RayPPOTrainer
+  File "/scratch/cs/adis/yuc10/rl-quantum/verl_tool/trainer/ppo/ray_trainer.py", line 27, in <module>
+    from .reward import compute_reward, compute_reward_async
+  File "/scratch/cs/adis/yuc10/rl-quantum/verl_tool/trainer/ppo/reward.py", line 23, in <module>
+    from verl_tool.workers.reward_manager import get_reward_manager_cls # added by verl-tool
+  File "/scratch/cs/adis/yuc10/rl-quantum/verl_tool/workers/reward_manager/__init__.py", line 1, in <module>
+    from verl.workers.reward_manager import register, REWARD_MANAGER_REGISTRY
+ImportError: cannot import name 'register' from 'verl.workers.reward_manager' (/scratch/cs/adis/yuc10/rl-quantum/verl/verl/workers/reward_manager/__init__.py)
