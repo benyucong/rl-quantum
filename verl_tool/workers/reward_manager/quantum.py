@@ -23,7 +23,7 @@ from verl.workers.reward_manager import register
 import torch
 from collections import defaultdict
 
-@register("quantum_cpu")
+@register("quantum")
 class QuantumRewardManager:
     """The reward manager.
     """
