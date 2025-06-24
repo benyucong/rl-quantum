@@ -46,7 +46,7 @@ fi
 export VERL_RUN_ID=$run_name
 export NCCL_DEBUG=INFO
 export VLLM_USE_V1=1
-rollout_mode='async'
+rollout_mode='sync'
 
 # temp file for action tokens as verl cannot pass special strs as params
 action_stop_tokens_file="$(pwd)$(mktemp)"
