@@ -161,7 +161,7 @@ class QuantumRewardManager:
 
             qasm_score = self.qasm_compute_score(
                 # data_source=data_source,
-                circuit_string=response_str,
+                response_string=response_str,
                 # ground_truth=ground_truth,
                 # extra_info=extra_info,
             ) # 1 or -1

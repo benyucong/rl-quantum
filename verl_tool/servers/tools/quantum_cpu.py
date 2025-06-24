@@ -14,7 +14,7 @@ import resource
 from typing import Tuple, Dict, Any, Optional, Union, List
 
 # Timeout for code execution in seconds
-TIMEOUT = 10
+TIMEOUT = 30
 PRE_IMPORT_LIBS = "from string import *\nfrom re import *\nfrom datetime import *\nfrom collections import *\nfrom heapq import *\nfrom bisect import *\nfrom copy import *\nfrom math import *\nfrom random import *\nfrom statistics import *\nfrom itertools import *\nfrom functools import *\nfrom operator import *\nfrom io import *\nfrom sys import *\nfrom json import *\nfrom builtins import *\nfrom typing import *\nimport string\nimport re\nimport datetime\nimport collections\nimport heapq\nimport bisect\nimport copy\nimport math\nimport random\nimport statistics\nimport itertools\nimport functools\nimport operator\nimport io\nimport sys\nimport json\nsys.setrecursionlimit(6*10**5)\n\n"
 filejail_command_exists = shutil.which("firejail") is not None
 
@@ -176,9 +176,9 @@ def execute_python(code: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Opt
     if not os.path.exists(cwd):
         os.makedirs(cwd, exist_ok=True)
     # write code to a temp file
-    file_name = "main.py"
+    file_name = "main.qasm"
     file_path = os.path.join(cwd, file_name)
-    code = wrap_code_blocks(code)
+    # code = wrap_code_blocks(code)
     with open(file_path, "w") as f:
         f.write(code)
     if pre_import_lib:
@@ -360,6 +360,7 @@ class QASMCodeTool(BaseTool):
         
         # use all the code blocks
         parsed_code = "\n".join([code.strip() for code in all_valid_python_code])
+        # print(f"Parsed code: {parsed_code}")
         
         return parsed_code, True
     

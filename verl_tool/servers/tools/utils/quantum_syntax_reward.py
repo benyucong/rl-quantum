@@ -1,9 +1,10 @@
 from qiskit.quantum_info import Statevector, SparsePauliOp
 from scipy.stats import entropy
 import numpy as np
-from qiskit.qasm3 import loads
+from qiskit_qasm3_import import parse
 import json
 import re
+import ast
 
 
 def construct_qiskit_hamiltonian(expression):
@@ -78,13 +79,13 @@ def construct_qiskit_hamiltonian(expression):
     return SparsePauliOp(paulis, coeffs)
 
 
-def syntax_reward(circuit_string: str) -> float:
+def syntax_reward(circuit_string: str):
     """
     A simple reward function that checks if the circuit string is valid QASM syntax.
-    Returns 1.0 for valid syntax, 0.0 otherwise.
     """
     # Attempt to parse the circuit string as QASM
-    loads(circuit_string)
+    # print(f"normalized circuit: ||{circuit_string}||")
+    qiskit_circuit = parse(circuit_string)
 
     
 
@@ -132,36 +133,42 @@ def expectation_value_reward(circuit_string: str, ground_truth: dict) -> float:
     normalized_expectation_value = np.abs(expectation_value - smallest_eigenvalue) / np.abs(smallest_eigenvalue)
     return 1 - normalized_expectation_value
 
-def main(file_path: str) -> float:
-    """
-    Args:
-        file_path (str): Path to the file containing the quantum circuit in QASM format.
+def normalize_qasm(qasm_str: str) -> str:
+    # Convert literal \n into real newlines
+    decoded = qasm_str.encode('utf-8').decode('unicode_escape')
+    # print("After decoding:", repr(decoded))
 
-    Returns:
-        float: The syntax reward (1.0 for valid syntax, -1.0 for invalid syntax).
-    """
+    # Now replace newlines with spaces
+    normalized = decoded.replace('\n', ' ').strip()
+    # print("Normalized QASM:", normalized)
+    return normalized
+
+
+def main(file_path: str):
     try:
         # Read the circuit string from the file
         with open(file_path, "r") as file:
-            circuit_string = file.read()
+            circuit_string = (file.read())
         
         # Compute the syntax reward
-        reward = syntax_reward(circuit_string)
-        return reward
+        circuit_string = normalize_qasm(circuit_string)
+        syntax_reward(circuit_string)
+        return "Syntax reward computed successfully"
     except FileNotFoundError:
-        print(f"Error: File '{file_path}' not found.")
-        return -100
+        return(f"Error: File '{file_path}' not found.")
     except Exception as e:
-        print(f"Error: {e}")
-        return -100
+        import traceback
+        traceback.print_exc()
+        return(f"Error: {e}")
 
 # Example usage
 if __name__ == "__main__":
     import sys
     if len(sys.argv) != 2:
         print("Usage: python reward.py <file_path>")
+        exit(1)
     else:
         file_path = sys.argv[1]
         result = main(file_path)
-        print(f"Syntax Reward: {result}") 
-    exit(0)
+        print(result) 
+        exit(0)

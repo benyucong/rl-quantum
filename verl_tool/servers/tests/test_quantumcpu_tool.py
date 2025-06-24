@@ -17,7 +17,7 @@ def test_qasm(
     
     print("--- Testing 1 ---")
     action = """<qasm>OPENQASM 3.0;\ninclude "stdgates.inc";\nqubit[2] q;\nh q[0];\ncx q[0], q[1];</qasm> ..."""
-    print(_send_test_request(url, trajectory_id, action, "Python"))
+    print(_send_test_request(url, trajectory_id, action, "QASM"))
     
     # print("--- Testing 2 ---")
     # action = """<qasm>import sys\n\nprint('Hello from Python!')\nprint(f'Arguments: {sys.argv[1:]}')\nfor i in range(5):\n    print(f'Number {i}')</qasm> ..."""
