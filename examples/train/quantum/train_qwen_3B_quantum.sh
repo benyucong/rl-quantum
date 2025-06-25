@@ -1,7 +1,7 @@
 set -x
-dataset_name=qasm # or math_torl_offical to use torl training data
-train_data=$(pwd)/data/${dataset_name}/quantum-qasm-with-execution-prompt-naive/train.parquet
-val_data=$(pwd)/data/${dataset_name}/quantum-qasm-with-execution-prompt-naive/test.parquet
+dataset_name=qasm-mini # or math_torl_offical to use torl training data
+train_data=$(pwd)/data/${dataset_name}/quantum-qasm-mini-with-execution-prompt-naive/train.parquet
+val_data=$(pwd)/data/${dataset_name}/quantum-qasm-mini-with-execution-prompt-naive/test.parquet
 model_name=linuzj/quantum-circuit-qubo-3B
 rl_alg=grpo # gae(ppo) or grpo, if grpo, then better set n>1 otherwise the group norm can not be effective
 n_gpus_per_node=8
