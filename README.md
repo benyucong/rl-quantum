@@ -56,8 +56,11 @@ VerlTool: A unified and easy-to-extend tool-agent training framework based on ve
 
 
 ## News
+<<<<<<< HEAD
 + [2025/06/18] VerlTool now officially supports Trajectory-Level asynchronous, speeding up the rollout generation with tool calling by at least 2x! see [asyncRL.md](./assets/docs/asyncRL.md) for more details.
 + [2024/06/16] We have updated the verl submodule to the latest version (06/16) and modified some code to adapt to the new version.
+=======
+>>>>>>> parent of 5251d4b (finish async RL implementation)
 + [2025/06/13] We integrated [DeepWiki](https://deepwiki.com/TIGER-AI-Lab/verl-tool) for Verl-Tool. Feel free to browse the AI-generated docs and chat with Verl-tool codes.
 + [2025/06/06] We have updated a detailed design overview in the README, including how to add new tools, how to use the tool server, and how to train your own models with verl-tool.
 + [2025/05/31] We released the Verl-tool training/evaluation code with ToRL training as an initial example (see [X post](https://x.com/DongfuJiang/status/1929198238017720379)). We are working on the paper and will release it very soon.
@@ -76,13 +79,15 @@ VerlTool: A unified and easy-to-extend tool-agent training framework based on ve
 We highly recommend using uv to install verl-tool.
 
 ```bash
-# install uv if not installed first
 git submodule update --init --recursive
+# pip install uv # if not installed
 uv sync
 source .venv/bin/activate
 uv pip install -e verl
-uv pip install -e ".[vllm,acecoder,torl]"
-uv pip install "flash-attn<2.8.0" --no-build-isolation
+uv pip install "vllm<0.9.0"
+uv pip install flash-attn --no-build-isolation
+uv pip install -e ".[acecoder,torl]"
+# uv pip install dill==0.4.0 fsspec==2025.3.2 protobuf==5.29.4
 ```
 
 ### Conda Installation
@@ -90,9 +95,12 @@ uv pip install "flash-attn<2.8.0" --no-build-isolation
 git submodule update --init --recursive
 conda create --name verl-tool-env python=3.10
 conda activate verl-tool-env
+pip install -e .
 pip install -e verl
-pip install -e ".[vllm,acecoder,torl]"
-pip install "flash-attn<2.8.0" --no-build-isolation
+pip install install "vllm<0.9.0"
+pip install flash-attn --no-build-isolation
+pip install -e ".[acecoder,torl]"
+# pip install dill==0.4.0 fsspec==2025.3.2 protobuf==5.29.4
 ```
 
 ## Design and Architecture
@@ -351,7 +359,7 @@ Content of `eval_service/scripts/start_api_service.sh`:
 ```bash
 #!/bin/bash
 set -x
-# 1. Start Tool Server
+# 1. Start ray server
 host=0.0.0.0
 port=$(shuf -i 30000-31000 -n 1)
 tool_server_url=http://$host:$port/get_observation

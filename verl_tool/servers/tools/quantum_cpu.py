@@ -332,37 +332,67 @@ class QASMCodeTool(BaseTool):
         if trajectory_id in self.env_cache:
             del self.env_cache[trajectory_id]
     
+    # def parse_action(self, action: str) -> Tuple[str, bool]:
+    #     """
+    #     Parse the raw action string (which is the llm response) into an actual action and its contents.
+    #     Ensures that the parsed code is valid and safe for execution.
+        
+    #     Args:
+    #         action: Raw action string containing Python code
+            
+    #     Returns:
+    #         Tuple containing the extracted code and a validity flag
+    #     """
+    #     # Try to find Python code in various formats
+    #     # print(f"Raw action: {action}")
+    #     all_valid_python_code = re.findall(r"<qasm>(.*?)</qasm>", action, re.DOTALL)
+        
+    #     if not all_valid_python_code:
+    #         all_valid_python_code = re.findall(r"```\n?qasm(.*?)```", action, re.DOTALL)
+        
+    #     # if not all_valid_python_code:
+    #     #     all_valid_python_code = re.findall(r"<tool_call>(.*?)</tool_call>", action, re.DOTALL)
+
+    #     if len(all_valid_python_code) == 0:
+    #         return "", False
+        
+    #     # # Use the first code block found (we could extend this to support multiple blocks)
+    #     # parsed_code = all_valid_python_code[0].strip()
+        
+    #     # use all the code blocks
+    #     parsed_code = "\n".join([code.strip() for code in all_valid_python_code])
+    #     # print(f"Parsed code: {parsed_code}")
+        
+    #     return parsed_code, True
     def parse_action(self, action: str) -> Tuple[str, bool]:
         """
-        Parse the raw action string (which is the llm response) into an actual action and its contents.
-        Ensures that the parsed code is valid and safe for execution.
+        Parse the raw action string (LLM response) as plain QASM code.
         
         Args:
-            action: Raw action string containing Python code
+            action: Raw string expected to contain QASM code.
             
         Returns:
-            Tuple containing the extracted code and a validity flag
+            Tuple of (code string, is_valid: bool)
         """
-        # Try to find Python code in various formats
-        all_valid_python_code = re.findall(r"<qasm>(.*?)</qasm>", action, re.DOTALL)
-        
-        if not all_valid_python_code:
-            all_valid_python_code = re.findall(r"```\n?qasm(.*?)```", action, re.DOTALL)
-        
-        # if not all_valid_python_code:
-        #     all_valid_python_code = re.findall(r"<tool_call>(.*?)</tool_call>", action, re.DOTALL)
+        # Remove any trailing special tokens like <|im_end|>
+        action = action.strip()
+        action = re.sub(r"<\|im_end\|>\s*$", "", action)
 
-        if len(all_valid_python_code) == 0:
-            return "", False
-        
-        # # Use the first code block found (we could extend this to support multiple blocks)
-        # parsed_code = all_valid_python_code[0].strip()
-        
-        # use all the code blocks
-        parsed_code = "\n".join([code.strip() for code in all_valid_python_code])
-        # print(f"Parsed code: {parsed_code}")
-        
-        return parsed_code, True
+        # Optional: stop at first non-code section (if mixed with messages)
+        qasm_start = action.find("OPENQASM")
+        if qasm_start == -1:
+            return "", False  # no QASM
+
+        code = action[qasm_start:].strip()
+
+        # Minimal validity check
+        is_valid = (
+            code.startswith("OPENQASM")
+            and "qubit" in code
+            and "measure" in code
+        )
+
+        return code, is_valid
     
     def conduct_action(self, trajectory_id, action, extra_field):
         """
@@ -380,7 +410,7 @@ class QASMCodeTool(BaseTool):
         env = self.load_env(trajectory_id)
         
         if not is_valid:
-            observation = ""
+            observation = f"parsed_action is not valid QASM code: {parsed_action}|| action: {action}"
             execution_result = ""
             done = False
             valid = False

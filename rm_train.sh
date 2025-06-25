@@ -1,0 +1,1 @@
+rm -rf outputs tmp verl_step_records checkpoints

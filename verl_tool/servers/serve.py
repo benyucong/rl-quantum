@@ -15,7 +15,7 @@ from pydantic import BaseModel
 from .utils import hash_requests
 from collections import defaultdict
 
-from .tools import get_tool_cls, ALL_TOOLS, set_use_tqdm
+from .tools import get_tool_cls, ALL_TOOLS
 
 # Configure logging
 logging.basicConfig(
@@ -47,7 +47,6 @@ class AsyncToolManager:
         """
         self.tools: Dict[str, Any] = {}
         self.use_tqdm = use_tqdm
-        set_use_tqdm(use_tqdm)
         self.done_if_invalid = done_if_invalid
         self._initialize_tools(tool_types, num_workers_per_tool)
         
@@ -266,7 +265,6 @@ class AsyncToolServer:
         max_concurrent_requests: int = 64,
         use_tqdm: bool = False,
         done_if_invalid: bool = False,
-        use_ray: bool = False,
     ):
         """
         Initialize the tool server
@@ -282,12 +280,8 @@ class AsyncToolServer:
         self.port = port
         self.max_concurrent_requests = max_concurrent_requests
         
-        if not use_ray:
-            # Initialize async tool manager
-            self.tool_manager = AsyncToolManager(tool_types, workers_per_tool, use_tqdm, done_if_invalid)
-        else:
-            from .ray_utils import RayToolManager
-            self.tool_manager = RayToolManager(tool_types, workers_per_tool, use_tqdm, done_if_invalid)
+        # Initialize async tool manager
+        self.tool_manager = AsyncToolManager(tool_types, workers_per_tool, use_tqdm, done_if_invalid)
         
         # Create FastAPI app
         self.app = FastAPI(
@@ -412,7 +406,7 @@ class AsyncToolServer:
             return {"status": "healthy"}
             
     
-    def start(self, log_level: str = "error"):
+    def start(self):
         """Start the server"""
         logger.info(f"Starting async server on {self.host}:{self.port}")
         logger.info(f"Server configured for up to {self.max_concurrent_requests} concurrent requests")
@@ -421,7 +415,7 @@ class AsyncToolServer:
             self.app,
             host=self.host,
             port=self.port,
-            log_level=log_level,
+            log_level="info"
         )
 
 
@@ -433,11 +427,10 @@ def main(
     port: int = 5000,
     workers_per_tool: int = None,
     max_concurrent_requests: int = 128,
-    use_tqdm: bool = False,
-    log_level: str = "error",
+    use_tqdm: bool = True,
+    log_level: str = "info",
     slient=False,
     done_if_invalid=False,
-    use_ray: bool = False,
 ):
     """
     Start the async tool server
@@ -474,14 +467,13 @@ def main(
         max_concurrent_requests=max_concurrent_requests,
         use_tqdm=use_tqdm,
         done_if_invalid=done_if_invalid,
-        use_ray=use_ray,
     )
     if slient:
         import sys
         import os
         sys.stdout = open(os.devnull, 'w')
         sys.stderr = open(os.devnull, 'w')
-    server.start(log_level=log_level)
+    server.start()
 
 
 if __name__ == "__main__":
@@ -489,5 +481,5 @@ if __name__ == "__main__":
     
     
 """
-python -m verl_tool.servers.serve --tool_type "python_code" --workers_per_tool 64
+python -m verl_tool.servers.ray_serve --tool_type "python_code" --workers_per_tool 64
 """

@@ -85,8 +85,13 @@ def syntax_reward(circuit_string: str):
     """
     # Attempt to parse the circuit string as QASM
     # print(f"normalized circuit: ||{circuit_string}||")
-    qiskit_circuit = parse(circuit_string)
-
+    try:
+        qiskit_circuit = parse(circuit_string)
+        result = "Syntax reward computed successfully"
+    except Exception as e:
+        # If parsing fails, the syntax is invalid
+        result = f"Syntax error: {str(e)}"
+    return result
     
 
 def KL_divergence_reward(circuit_string: str, ground_truth: dict) -> float:
@@ -152,8 +157,8 @@ def main(file_path: str):
         
         # Compute the syntax reward
         circuit_string = normalize_qasm(circuit_string)
-        syntax_reward(circuit_string)
-        return "Syntax reward computed successfully"
+        result = syntax_reward(circuit_string)
+        return result
     except FileNotFoundError:
         return(f"Error: File '{file_path}' not found.")
     except Exception as e:

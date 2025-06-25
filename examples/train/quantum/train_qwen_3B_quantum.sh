@@ -1,7 +1,7 @@
 set -x
 dataset_name=qasm-mini # or math_torl_offical to use torl training data
-train_data=$(pwd)/data/${dataset_name}/quantum-qasm-mini-with-execution-prompt-naive/train.parquet
-val_data=$(pwd)/data/${dataset_name}/quantum-qasm-mini-with-execution-prompt-naive/test.parquet
+train_data=$(pwd)/data/${dataset_name}/quantum-qasm-mini-with-execution-prompt-linus/train.parquet
+val_data=$(pwd)/data/${dataset_name}/quantum-qasm-mini-with-execution-prompt-linus/test.parquet
 model_name=linuzj/quantum-circuit-qubo-3B
 rl_alg=grpo # gae(ppo) or grpo, if grpo, then better set n>1 otherwise the group norm can not be effective
 n_gpus_per_node=8
@@ -16,7 +16,7 @@ temperature=1.0
 top_p=1.0
 enable_agent=True # enable agent for tool use
 strategy="fsdp"
-action_stop_tokens='```output'
+action_stop_tokens='<|im_end|>'
 max_turns=1
 kl_loss_coef=0.0
 kl_coef=0

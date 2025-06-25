@@ -108,6 +108,9 @@ Quantum circuit design questions can ask for various forms of solutions:
 Let's think step by step and generate the final QASM 3.0 code in a markdown code block like this: ```qasm\nyour code here\n```.
 """
 
+linus_instruction = """\
+You are a helpful quantum circuit design assistant. Provide a quantum circuit in valid QASM 3.0 code with optimal gate parameters so that the output state encodes the solution, ensuring that the measurement outcomes have a high probability of reflecting the correct answer."
+"""
 
 def main(
     dataset_path: str = 'Benyucong/quantum-qasm',
@@ -148,6 +151,8 @@ def main(
                     system_instruction = r1_naive_execution_prompt if add_execution_prompt else r1_naive_coder_instruction
                 else:
                     system_instruction = naive_execution_prompt if add_execution_prompt else naive_coder_instruction
+            elif propmt_type == 'linus':
+                system_instruction = linus_instruction
             else:
                 raise ValueError(f"Unknown propmt_type: {propmt_type}")
             
@@ -200,4 +205,5 @@ python examples/data_preprocess/quantum.py --dataset_path Benyucong/quantum-qasm
 python examples/data_preprocess/quantum.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt True --propmt_type naive
 python examples/data_preprocess/quantum.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt False --propmt_type complex
 python examples/data_preprocess/quantum.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt False --propmt_type naive
+python examples/data_preprocess/quantum.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt True --propmt_type linus
 """
