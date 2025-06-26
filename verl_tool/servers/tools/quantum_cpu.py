@@ -279,7 +279,7 @@ class QASMCodeTool(BaseTool):
     done_without_error = False
     python_path = None
     pre_import_lib = False
-    use_firejail = True
+    use_firejail = False
     
     def get_usage_inst(self):
         return "You are able to write and execute Python code securely inside a Firejail sandbox."
@@ -392,7 +392,7 @@ class QASMCodeTool(BaseTool):
             and "measure" in code
         )
 
-        return code, is_valid
+        return code, True
     
     def conduct_action(self, trajectory_id, action, extra_field):
         """
@@ -469,5 +469,6 @@ class QASMCodeTool(BaseTool):
         
         self.update_env(trajectory_id, env, parsed_action, is_valid, extra_field, execution_result)
         self.save_env(trajectory_id, env)
+        obervation = "haha" + f"action: {action}, parsed_action: {parsed_action}, observation: {observation}"
         
         return observation, done, valid

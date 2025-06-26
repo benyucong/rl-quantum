@@ -14,17 +14,17 @@ TOOL_TYPES="python_code"    # comma-separated e.g. python_code,bash
 WORKERS=4
 
 
-python -m verl_tool.servers.serve \
-    --host $HOST \
-    --port $PORT \
-    --tool_type $TOOL_TYPES \
-    --workers_per_tool $WORKERS &
+# python -m verl_tool.servers.serve \
+#     --host $HOST \
+#     --port $PORT \
+#     --tool_type $TOOL_TYPES \
+#     --workers_per_tool $WORKERS &
 
-SERVER_PID=$!
+# SERVER_PID=$!
 
-sleep 10 # wait for server to start
+# sleep 10 # wait for server to start
 
 bash examples/train/torl/train_qwen_1.5B_math_deep_math.sh
 
 # Optional: stop server gracefully (if training finishes)
-kill $SERVER_PID
+# kill $SERVER_PID

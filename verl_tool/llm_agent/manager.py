@@ -576,7 +576,7 @@ class AgentActorManager:
             #     print(f"saved responses to temp-{step}.json")
 
             curr_active_mask = torch.tensor([not done for done in dones], dtype=torch.bool)
-            self._update_active_mask_inplace(active_mask, curr_active_mask)
+            active_mask = active_mask * curr_active_mask
             turns_stats[curr_active_mask] += 1
             valid_action_stats += torch.tensor(valid_action, dtype=torch.int)
 
