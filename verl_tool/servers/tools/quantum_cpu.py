@@ -376,7 +376,7 @@ class QASMCodeTool(BaseTool):
         """
         # Remove any trailing special tokens like <|im_end|>
         action = action.strip()
-        action = re.sub(r"<\|im_end\|>\s*$", "", action)
+        action = re.sub(r"```output\s*$", "", action)
 
         # Optional: stop at first non-code section (if mixed with messages)
         qasm_start = action.find("OPENQASM")
@@ -392,7 +392,7 @@ class QASMCodeTool(BaseTool):
             and "measure" in code
         )
 
-        return code, True
+        return code, is_valid
     
     def conduct_action(self, trajectory_id, action, extra_field):
         """
@@ -410,7 +410,7 @@ class QASMCodeTool(BaseTool):
         env = self.load_env(trajectory_id)
         
         if not is_valid:
-            observation = f"parsed_action is not valid QASM code: {parsed_action}|| action: {action}"
+            observation = f"parsed_action is not valid QASM code: {parsed_action}"
             execution_result = ""
             done = False
             valid = False
@@ -469,6 +469,6 @@ class QASMCodeTool(BaseTool):
         
         self.update_env(trajectory_id, env, parsed_action, is_valid, extra_field, execution_result)
         self.save_env(trajectory_id, env)
-        obervation = "haha" + f"action: {action}, parsed_action: {parsed_action}, observation: {observation}"
+        # obervation = "haha" + f"action: {action}, parsed_action: {parsed_action}, observation: {observation}"
         
         return observation, done, valid

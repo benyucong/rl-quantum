@@ -139,6 +139,7 @@ class AgentActorManager:
                             if not responses_str[i].endswith(self.config.turn_end_token):
                                 responses_str[i] += self.config.turn_end_token
                         else:
+                            # if no action stop token in response, then we do not do action
                             do_action = False
                     else:
                         do_action = True
@@ -167,6 +168,7 @@ class AgentActorManager:
                 # resp = resp.strip(' \n')
                 has_action = False
                 for j in range(len(self.action_stop_tokens)):
+                    # check if action stop tokens are in responses generated from LLM
                     if self.action_stop_tokens[j] in resp:
                     # if resp.endswith(self.action_stop_tokens[j]):
                     # if self.action_stop_tokens[j] in resp[-(len(self.action_stop_tokens[j]) + 3):]: # 5 for some action token tokens not indepdently decoded
