@@ -153,7 +153,7 @@ def set_limits():
     # File size limit (500 MB)
     resource.setrlimit(resource.RLIMIT_FSIZE, (500*1024*1024, 500*1024*1024))
 
-def execute_python(code: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Optional[str] = None, python_path: str = None, pre_import_lib: bool = False, use_firejail: bool=False) -> Tuple[str, bool]:
+def execute_qasm(code: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Optional[str] = None, python_path: str = None, pre_import_lib: bool = False, use_firejail: bool=False) -> Tuple[str, bool]:
     """
     Execute Python code in a Firejail sandbox with a timeout.
     
@@ -394,7 +394,7 @@ class QASMCodeTool(BaseTool):
 
         return code, is_valid
     
-    def conduct_action(self, trajectory_id, action, extra_field):
+    def conduct_action(self, trajectory_id, action, ground_truths, extra_field):
         """
         Execute the parsed action in a Firejail sandbox.
         
@@ -429,7 +429,7 @@ class QASMCodeTool(BaseTool):
             else:
                 code_to_execute = parsed_action
             
-            stdout, stderr, has_error = execute_python(code_to_execute, self.timeout, stdin, self.python_path, self.pre_import_lib, self.use_firejail)
+            stdout, stderr, has_error = execute_qasm(code_to_execute, self.timeout, stdin, self.python_path, self.pre_import_lib, self.use_firejail)
             execution_result = stdout + "\n" + stderr
             execution_result = execution_result.strip(' \n')
             observation = execution_result

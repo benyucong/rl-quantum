@@ -131,7 +131,7 @@ class BaseTool:
         
         return observation, done, valid
         
-    def get_observations(self, trajectory_ids, actions, extra_fields):
+    def get_observations(self, trajectory_ids, actions, ground_truths, extra_fields):
         """
         Get the observations for the given trajectory IDs and actions
         Args:
@@ -144,7 +144,7 @@ class BaseTool:
             valids: The list of valid flags
         """
         with ThreadPoolExecutor(max_workers=min(self.num_workers, len(trajectory_ids))) as executor:
-            results = list(tqdm(executor.map(self.conduct_action, trajectory_ids, actions, extra_fields),
+            results = list(tqdm(executor.map(self.conduct_action, trajectory_ids, actions, ground_truths, extra_fields),
                                             total=len(trajectory_ids), desc=f"Getting observations using tool {self.tool_type}", 
                                             disable=False))
         for i in range(len(trajectory_ids)):

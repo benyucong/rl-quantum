@@ -760,6 +760,7 @@ class AgentActorManager:
         active_mask=None,
         extra_fields=None,
         is_last_step=False,
+        ground_truths: List[str] = None,
     ) -> List[str]:
         """
         Call tool server for queries.
@@ -777,6 +778,7 @@ class AgentActorManager:
         batch_data = {
             "trajectory_ids": active_uids,
             "actions": responses,
+            "ground_truths": ground_truths if ground_truths is not None else [''] * len(active_uids),
             "finish": finishs, # if do_action is False, then it is a finish action, finishing the trajectory,
             "is_last_step": [is_last_step] * len(finishs)
         }

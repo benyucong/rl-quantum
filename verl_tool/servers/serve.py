@@ -164,7 +164,8 @@ class AsyncToolManager:
     async def process_actions(
         self, 
         trajectory_ids: List[str], 
-        actions: List[str], 
+        actions: List[str],
+        ground_truths: List[str], 
         extra_fields: List[Dict[str, Any]]
     ) -> Tuple[List[str], List[bool], List[bool]]:
         """
@@ -211,6 +212,7 @@ class AsyncToolManager:
             tool = self.tools[tool_type]
             tool_trajectory_ids = [trajectory_ids[i] for i in indices]
             tool_actions = [actions[i] for i in indices]
+            tool_ground_truths = [ground_truths[i] for i in indices]
             tool_extra_fields = [extra_fields[i] for i in indices]
             
             # Create task for tool processing
@@ -218,7 +220,8 @@ class AsyncToolManager:
             task = asyncio.to_thread(
                 tool.get_observations,
                 tool_trajectory_ids, 
-                tool_actions, 
+                tool_actions,
+                tool_ground_truths, 
                 tool_extra_fields
             )
             tasks.append((tool_type, task))
@@ -344,6 +347,7 @@ class AsyncToolServer:
                         # Validate and process request
                         trajectory_ids = data.get("trajectory_ids", [])
                         actions = data.get("actions", [])
+                        ground_truths = data.get("ground_truths", [])
                         if 'extra_fields' in data.keys():
                             extra_fields = data['extra_fields']
                             for key in data.keys():
@@ -362,6 +366,7 @@ class AsyncToolServer:
                         observations, dones, valids = await self.tool_manager.process_actions(
                             trajectory_ids,
                             actions,
+                            ground_truths,
                             extra_fields
                         )
                         
