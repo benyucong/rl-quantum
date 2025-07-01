@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
         
 @ray.remote(num_cpus=0)
-def ray_execute(tool, trajectory_id: str, action: str, ground_truths: str, extra_field: Dict[str, Any]):
+def ray_execute(tool, trajectory_id: str, action: str, ground_truth: str, extra_field: Dict[str, Any]):
     """
     Execute a single tool action.
     
@@ -37,7 +37,7 @@ def ray_execute(tool, trajectory_id: str, action: str, ground_truths: str, extra
     Returns:
         tuple: (observation, done, valid) result of the action
     """
-    return tool.conduct_action(trajectory_id, action, ground_truths ,extra_field)
+    return tool.conduct_action(trajectory_id, action, ground_truth ,extra_field)
     
 @ray.remote(num_cpus=0)
 def ray_parse_action(tool, action: str):
@@ -196,13 +196,14 @@ class RayToolManager:
             trajectory_id = trajectory_ids[i]
             action = actions[i]
             extra_field = extra_fields[i]
+            ground_truth = ground_truths[i]
             
             if tool_type is None:
                 # Handle actions with no matching tool
                 result_ref = non_tool_action.remote(trajectory_id, action, extra_field)
             else:
                 worker = self.tool_workers[tool_type]
-                result_ref = ray_execute.remote(worker, trajectory_id, ground_truths, action, extra_field)
+                result_ref = ray_execute.remote(worker, trajectory_id, action, ground_truth, extra_field)
             pending_refs.append(result_ref)
         
         # Get results as they complete
