@@ -1,7 +1,17 @@
 Bootstrap: docker
 From: nvcr.io/nvidia/nightly/cuda-quantum:cu12-latest
 
+%post
+    # Always good to update pip
+    python3 -m pip install --upgrade pip
+
+    # Install your Python packages
+    pip install numpy qiskit scipy qiskit_qasm3_import
+
+    # Clean up cache to reduce image size (optional)
+    rm -rf /root/.cache/pip
+
 %runscript
-    mount devpts /dev/pts -t devpts
-    cp -r /home/cudaq/* .
-    bash
+    # This runs on `singularity run container.sif`
+    echo "Starting CUDA Quantum container..."
+    exec bash

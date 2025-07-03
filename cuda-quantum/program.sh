@@ -10,7 +10,7 @@
 ml cuda
 
 # Set paths (use absolute paths to avoid issues)
-WORKDIR=/scratch/work/yuc10/cuda-quantum
+WORKDIR=/scratch/cs/adis/yuc10/rl-quantum/cuda-quantum
 IMAGE_PATH="$WORKDIR/cuda-quantum.sif"
 SCRIPT_PATH="$WORKDIR/program.py"
 
@@ -19,5 +19,5 @@ srun singularity exec --nv --bind "$WORKDIR":"$WORKDIR" "$IMAGE_PATH" bash -c "
   echo '=== NVIDIA GPU Status ==='
   nvidia-smi
   echo '=== Running Python Program ==='
-  mpiexec python3 $SCRIPT_PATH
+  python3 $SCRIPT_PATH code1.qasm code2.qasm
 "
