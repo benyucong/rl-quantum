@@ -15,7 +15,6 @@ from typing import Tuple, Dict, Any, Optional, Union, List
 
 # Timeout for code execution in seconds
 TIMEOUT = 30
-PRE_IMPORT_LIBS = "from string import *\nfrom re import *\nfrom datetime import *\nfrom collections import *\nfrom heapq import *\nfrom bisect import *\nfrom copy import *\nfrom math import *\nfrom random import *\nfrom statistics import *\nfrom itertools import *\nfrom functools import *\nfrom operator import *\nfrom io import *\nfrom sys import *\nfrom json import *\nfrom builtins import *\nfrom typing import *\nimport string\nimport re\nimport datetime\nimport collections\nimport heapq\nimport bisect\nimport copy\nimport math\nimport random\nimport statistics\nimport itertools\nimport functools\nimport operator\nimport io\nimport sys\nimport json\nsys.setrecursionlimit(6*10**5)\n\n"
 filejail_command_exists = shutil.which("firejail") is not None
 
 def check_forbidden_imports(code: str) -> bool:
@@ -153,12 +152,13 @@ def set_limits():
     # File size limit (500 MB)
     resource.setrlimit(resource.RLIMIT_FSIZE, (500*1024*1024, 500*1024*1024))
 
-def execute_qasm(code: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Optional[str] = None, python_path: str = None, pre_import_lib: bool = False, use_firejail: bool=False) -> Tuple[str, bool]:
+def execute_qasm(code: Union[str, List[str]], ground_truth: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Optional[str] = None, python_path: str = None, pre_import_lib: bool = False, use_firejail: bool=False) -> Tuple[str, bool]:
     """
-    Execute Python code in a Firejail sandbox with a timeout.
+    Execute qasm code in a Firejail sandbox with a timeout.
     
     Args:
-        code: Python code string to execute
+        code: qasm code string to execute from the LLM
+        ground_truth: ground truth qasm code  
         stdin: Optional input to provide to the executed code
         
     Returns:
@@ -173,18 +173,24 @@ def execute_qasm(code: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Optio
     
     # set cwd to be a temp dir
     cwd = os.path.join(os.getcwd(), "tmp/firejail", str(uuid.uuid4().hex)) # local tmp dir
+    
     if not os.path.exists(cwd):
         os.makedirs(cwd, exist_ok=True)
-    # write code to a temp file
-    file_name = "main.qasm"
-    file_path = os.path.join(cwd, file_name)
+    # write response code to a temp file
+    response_file_name = "response.qasm"
+    response_file_path = os.path.join(cwd, response_file_name)
     # code = wrap_code_blocks(code)
-    with open(file_path, "w") as f:
+    with open(response_file_path, "w") as f:
         f.write(code)
-    if pre_import_lib:
-        code = PRE_IMPORT_LIBS + code
-    # command.extend(["python3", "-c", code])
-    # command.extend(["python3", file_path])
+        
+    # write code to a temp file
+    truth_file_name = "truth.qasm"
+    truth_file_path = os.path.join(cwd, truth_file_name)
+    # code = wrap_code_blocks(code)
+    with open(truth_file_path, "w") as f:
+        f.write(ground_truth)
+
+
     if not python_path:
         python_path = "python3"
     else:
@@ -227,11 +233,11 @@ def execute_qasm(code: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Optio
             "--rlimit-fsize=2m",  # Limit file size
             "--rlimit-as=1096m"  # Limit address space
         ]
-        command.extend([python_path, reward_script_path, file_path])
+        command.extend([python_path, reward_script_path, response_file_path, truth_file_path])
         subprocess_cwd = cwd
     else:
         env = original_env
-        command = [python_path, reward_script_path, file_name]
+        command = [python_path, reward_script_path, response_file_name, truth_file_name]
         subprocess_cwd = cwd  # Use the temporary directory as the current working directory
 
     has_error = False
@@ -394,7 +400,7 @@ class QASMCodeTool(BaseTool):
 
         return code, is_valid
     
-    def conduct_action(self, trajectory_id, action, ground_truths, extra_field):
+    def conduct_action(self, trajectory_id, action, ground_truth, extra_field):
         """
         Execute the parsed action in a Firejail sandbox.
         
@@ -429,7 +435,7 @@ class QASMCodeTool(BaseTool):
             else:
                 code_to_execute = parsed_action
             
-            stdout, stderr, has_error = execute_qasm(code_to_execute, self.timeout, stdin, self.python_path, self.pre_import_lib, self.use_firejail)
+            stdout, stderr, has_error = execute_qasm(code_to_execute, ground_truth, self.timeout, stdin, self.python_path, self.pre_import_lib, self.use_firejail)
             execution_result = stdout + "\n" + stderr
             execution_result = execution_result.strip(' \n')
             observation = execution_result
