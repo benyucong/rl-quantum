@@ -6,58 +6,80 @@ import cudaq
 import json
 import re
 import ast
+import math
+
+def safe_eval(expr: str) -> float:
+    """Evaluate math expressions like 'pi/2' without sympy."""
+    try:
+        return float(eval(expr, {"__builtins__": {}}, math.__dict__))
+    except Exception as e:
+        raise ValueError(f"Invalid expression '{expr}': {e}")
+
 
 def qasm_to_cudaq_kernel(qasm_str: str):
     """
-    Parses your OpenQASM 3.0 with rx, rz, crz, and measurement.
+    Parses OpenQASM 3.0 with support for rx, ry, rz, crz, h, x, cx gates.
     Builds a CUDA-Q kernel for statevector simulation (ignores measurement).
     """
     kernel = cudaq.make_kernel()
 
-    # Find qubit count
+    # Extract qubit count
     qubit_decl = re.search(r"qubit\[(\d+)\]", qasm_str)
     if not qubit_decl:
         raise ValueError("No qubit declaration found.")
     num_qubits = int(qubit_decl.group(1))
     qubits = kernel.qalloc(num_qubits)
 
-    # Split by semicolon
+    # Split lines and process
     lines = qasm_str.strip().split(';')
     for line in lines:
         line = line.strip()
-        if not line:
+        if not line or line.startswith(('OPENQASM', 'include', 'qubit', 'bit')) or 'measure' in line:
             continue
 
-        # Ignore headers and classical bits
-        if line.startswith('OPENQASM') or line.startswith('include') or \
-           line.startswith('qubit') or line.startswith('bit'):
-            continue
-
-        # Ignore measurement
-        if 'measure' in line:
-            continue
-
-        # rx(θ) q[i]
-        match = re.match(r'rx\(([^)]+)\)\s+q\[(\d+)\]', line)
-        if match:
+        # Match rx(θ) q[i]
+        if match := re.match(r'rx\(([^)]+)\)\s+q\[(\d+)\]', line):
             angle, idx = match.groups()
-            kernel.rx(float(angle), qubits[int(idx)])
+            kernel.rx(safe_eval(angle), qubits[int(idx)])
             continue
 
-        # rz(θ) q[i]
-        match = re.match(r'rz\(([^)]+)\)\s+q\[(\d+)\]', line)
-        if match:
+        # Match ry(θ) q[i]
+        if match := re.match(r'ry\(([^)]+)\)\s+q\[(\d+)\]', line):
             angle, idx = match.groups()
-            kernel.rz(float(angle), qubits[int(idx)])
+            kernel.ry(safe_eval(angle), qubits[int(idx)])
             continue
 
-        # crz(θ) q[i], q[j]
-        match = re.match(r'crz\(([^)]+)\)\s+q\[(\d+)\],\s*q\[(\d+)\]', line)
-        if match:
-            angle, control, target = match.groups()
-            kernel.crz(float(angle), qubits[int(control)], qubits[int(target)])
+        # Match rz(θ) q[i]
+        if match := re.match(r'rz\(([^)]+)\)\s+q\[(\d+)\]', line):
+            angle, idx = match.groups()
+            kernel.rz(safe_eval(angle), qubits[int(idx)])
             continue
 
+        # Match crz(θ) q[i], q[j]
+        if match := re.match(r'crz\(([^)]+)\)\s+q\[(\d+)\],\s*q\[(\d+)\]', line):
+            angle, c, t = match.groups()
+            kernel.crz(safe_eval(angle), qubits[int(c)], qubits[int(t)])
+            continue
+
+        # Match h q[i]
+        if match := re.match(r'h\s+q\[(\d+)\]', line):
+            idx = int(match.group(1))
+            kernel.h(qubits[idx])
+            continue
+
+        # Match x q[i]
+        if match := re.match(r'x\s+q\[(\d+)\]', line):
+            idx = int(match.group(1))
+            kernel.x(qubits[idx])
+            continue
+
+        # Match cx q[i], q[j]
+        if match := re.match(r'cx\s+q\[(\d+)\],\s*q\[(\d+)\]', line):
+            control, target = match.groups()
+            kernel.cx(qubits[int(control)], qubits[int(target)])
+            continue
+
+        # Unrecognized line
         print(f"Warning: Unrecognized line: {line}")
 
     return kernel
@@ -105,24 +127,21 @@ def KL_divergence_reward_cpu(llm_circuit: str, ground_truth_circuit: str) -> flo
     return 1 - scaled_relative_entropy
 
 
-
 def KL_divergence_reward_cuda(llm_qasm: str, truth_qasm: str) -> float:
     """
-    Compute the KL divergence reward using CUDA‑Q statevector simulation.
+    Compute the KL divergence reward using CUDA-Q statevector simulation.
     """
     cudaq.set_target("nvidia", option="mgpu")  # multi-GPU pooling via MPI if available
+    target = cudaq.get_target()
+    print("Number of QPUs:", target.num_qpus())
 
     # Convert QASM to CUDA‑Q kernels
     llm_kernel = qasm_to_cudaq_kernel(llm_qasm)
     truth_kernel = qasm_to_cudaq_kernel(truth_qasm)
 
-    # Sample with a single shot (statevector returned on simulator)
-    llm_res = cudaq.sample(llm_kernel, shots_count=1000)
-    truth_res = cudaq.sample(truth_kernel, shots_count=1000)
-
-    # Extract statevectors
-    llm_state = np.array(llm_res.statevector)
-    truth_state = np.array(truth_res.statevector)
+    # Get statevectors directly
+    llm_state = np.array(cudaq.get_state(llm_kernel))
+    truth_state = np.array(cudaq.get_state(truth_kernel))
 
     # Compute probability distributions
     llm_probs = np.abs(llm_state) ** 2
@@ -188,5 +207,5 @@ if __name__ == "__main__":
         response_file_path = sys.argv[1]
         ground_truth_file_path = sys.argv[2]
         result = main(response_file_path, ground_truth_file_path)
-        print(result) 
+        print(f"Reward: {result}")
         exit(0)
