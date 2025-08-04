@@ -180,7 +180,7 @@ def reward_calculator(circuit_string: str, ground_truth: str) -> float:
     if syntax_reward_value < 0:
         return syntax_reward_value
     # If the syntax is valid, compute the KL divergence reward
-    return KL_divergence_reward_cuda(circuit_string, ground_truth)
+    return KL_divergence_reward_cpu(circuit_string, ground_truth)
     
 
 def main(response_file_path: str,  ground_truth_file_path: str):
