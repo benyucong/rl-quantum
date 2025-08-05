@@ -105,7 +105,7 @@ class BaseTool:
         action = action[:10]
         valid = True
         return action, valid
-    
+
     def conduct_action(self, trajectory_id, action, extra_field):
         """
         Conduct the action on the environment and return the observation
