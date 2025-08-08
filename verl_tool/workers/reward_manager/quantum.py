@@ -152,6 +152,7 @@ class QuantumRewardManager:
             # decode
             prompt_str = self.tokenizer.decode(valid_prompt_ids, skip_special_tokens=True)
             response_str = self.tokenizer.decode(valid_response_ids, skip_special_tokens=True)
+            print(f"response: {response_str}")
 
             ground_truth = data_item.non_tensor_batch['reward_model']['ground_truth']
 
