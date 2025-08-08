@@ -6,14 +6,15 @@ from qiskit.qasm3 import loads
 import json
 import re
 
-def syntax_reward(response_string: str) -> float:
+
+# extract "Reward: {result}"
+def extract_reward(response_string: str) -> float:
     """
-    A simple reward function that checks if the circuit string contains the word 'successfully'.
-    Returns:
-        1.0 if 'successfully' is present (case-insensitive),
-       -1.0 otherwise.
+    Extracts the reward value from a response string.
     """
-    if "successfully" in response_string.lower():
-        return 1.0
-    else:
-        return -1.0
+    # Extracts the reward value from a string like 'Reward: 42.5'.
+    # Handles integers, floats, and scientific notation.
+    match = re.search(r"Reward:\s*([+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)", response_string)
+    if match:
+        return float(match.group(1))
+    return -1.0
