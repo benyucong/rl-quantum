@@ -91,7 +91,7 @@ class AgentRayPPOTrainer(RayPPOTrainer):
                 non_tensor_batch_keys=non_tensor_batch_keys_to_pop,
             )
             if self.config.actor_rollout_ref.actor.enable_agent:
-                additional_non_tensor_keys = ['extra_info']
+                additional_non_tensor_keys = ['extra_info', 'reward_model']
                 additional_non_tensor_keys = [k for k in additional_non_tensor_keys if k in test_batch.non_tensor_batch.keys()]
                 for key in additional_non_tensor_keys:
                     test_gen_batch.non_tensor_batch[key] = test_batch.non_tensor_batch[key]
@@ -234,7 +234,7 @@ class AgentRayPPOTrainer(RayPPOTrainer):
                     non_tensor_batch_keys=non_tensor_batch_keys_to_pop,
                 )
                 if self.config.actor_rollout_ref.actor.enable_agent:
-                    additional_non_tensor_keys = ['extra_info']
+                    additional_non_tensor_keys = ['extra_info', 'reward_model']
                     additional_non_tensor_keys = [k for k in additional_non_tensor_keys if k in batch.non_tensor_batch.keys()]
                     for key in additional_non_tensor_keys:
                         gen_batch.non_tensor_batch[key] = batch.non_tensor_batch[key]

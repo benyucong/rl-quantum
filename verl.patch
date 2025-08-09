@@ -1,0 +1,36 @@
+diff --git a/verl/workers/rollout/sglang_rollout/sglang_rollout.py b/verl/workers/rollout/sglang_rollout/sglang_rollout.py
+index 4e9c58eb..7fbe31f5 100644
+--- a/verl/workers/rollout/sglang_rollout/sglang_rollout.py
++++ b/verl/workers/rollout/sglang_rollout/sglang_rollout.py
+@@ -264,7 +264,6 @@ class SGLangRollout(BaseRollout):
+         ) = self._initialize_tools(config, tokenizer)
+         # If turn on `free_cache_engine`, SGLang engine's KV cache
+         # will be freed after each `generate_sequences` call.
+-        assert not (not config.enforce_eager and config.free_cache_engine), "disable CUDA graph (enforce_eager = False) if free cache engine"
+ 
+         logger.info(f"tool_schemas: {self._tool_schemas}, tool_map: {self._tool_map}, tool_call_parser_type: {self._tool_call_parser_type}, sgl_tools: {self._sgl_tools}, function_call_parser: {self._function_call_parser}")
+ 
+diff --git a/verl/workers/rollout/vllm_rollout/vllm_rollout.py b/verl/workers/rollout/vllm_rollout/vllm_rollout.py
+index e24a4341..c5b3faf1 100644
+--- a/verl/workers/rollout/vllm_rollout/vllm_rollout.py
++++ b/verl/workers/rollout/vllm_rollout/vllm_rollout.py
+@@ -77,7 +77,6 @@ class vLLMRollout(BaseRollout):
+         """
+         super().__init__()
+         self.config = config
+-        assert not (not config.enforce_eager and config.free_cache_engine), "disable CUDA graph (enforce_eager = False) if free cache engine"
+ 
+         tensor_parallel_size = self.config.get("tensor_model_parallel_size", 1)
+         assert tensor_parallel_size <= torch.distributed.get_world_size(), "tensor parallel size should be less than or equal to the world size"
+diff --git a/verl/workers/rollout/vllm_rollout/vllm_rollout_spmd.py b/verl/workers/rollout/vllm_rollout/vllm_rollout_spmd.py
+index 540b7a01..38be8ff9 100644
+--- a/verl/workers/rollout/vllm_rollout/vllm_rollout_spmd.py
++++ b/verl/workers/rollout/vllm_rollout/vllm_rollout_spmd.py
+@@ -87,7 +87,6 @@ class vLLMRollout(BaseRollout):
+         """
+         super().__init__()
+         self.config = config
+-        assert not (not config.enforce_eager and config.free_cache_engine), "disable CUDA graph (enforce_eager = False) if free cache engine"
+ 
+         tensor_parallel_size = self.config.get("tensor_model_parallel_size", 1)
+         assert tensor_parallel_size <= torch.distributed.get_world_size(), "tensor parallel size should be less than or equal to the world size"
