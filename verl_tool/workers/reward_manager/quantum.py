@@ -18,7 +18,7 @@ import regex as re
 from pathlib import Path
 from verl import DataProto
 from .reward_score import _default_compute_score
-from .reward_score.quantum_score import syntax_reward, parse_reward
+from .reward_score.quantum_score import parse_reward
 from verl.workers.reward_manager import register
 import torch
 from collections import defaultdict
@@ -33,7 +33,6 @@ class QuantumRewardManager:
         self.compute_score = compute_score if compute_score else _default_compute_score
         # todo
         self.qasm_compute_score = parse_reward
-        self.response_validity = syntax_reward
         self.reward_fn_key = reward_fn_key
         self.step = None
         self.add_format_think_penalty = False # -0.5 if not begines with <think> and end with </think>
@@ -168,7 +167,7 @@ class QuantumRewardManager:
                 # ground_truth=ground_truth,
                 # extra_info=extra_info,
             ) # 1 or -1
-            score['validity'] = self.response_validity(response_str)
+            score['validity'] =  1 if qasm_score > 0 else 0
             score['score'] = qasm_score
 
             # add additional penalty
