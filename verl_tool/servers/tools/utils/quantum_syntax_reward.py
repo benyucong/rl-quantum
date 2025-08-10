@@ -1,108 +1,139 @@
-from qiskit.quantum_info import Statevector, SparsePauliOp
-from scipy.stats import entropy
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Exact (statevector) reward for QASM circuits.
+
+Reward = syntax_bonus + (1 - JS_distance(p_llm, p_gt))
+- JS_distance ∈ [0, 1], symmetric, numerically stable with ε-smoothing.
+- Probabilities come from full statevectors (length 2**n) in computational order.
+- Syntax bonus is small to avoid dominating learning signals.
+
+CLI:
+  python quantum_syntax_reward.py <response_file_path> <ground_truth_file_path>
+Prints:
+  Reward: <float>
+"""
+
+import sys
 import numpy as np
+from qiskit.quantum_info import Statevector
 from qiskit_qasm3_import import parse
-import json
-import re
-import ast
-import math
 
-def safe_eval(expr: str) -> float:
-    """Evaluate math expressions like 'pi/2' without sympy."""
-    try:
-        return float(eval(expr, {"__builtins__": {}}, math.__dict__))
-    except Exception as e:
-        raise ValueError(f"Invalid expression '{expr}': {e}")
+# --------------------------- Tunables ---------------------------
 
+SYNTAX_OK_BONUS = 0.2   # small positive shaping for valid QASM
+SYNTAX_BAD_PENALTY = -0.5
+EPS = 1e-12             # smoothing for KL/JS
+MAX_SAFE_QUBITS = None    # guardrail (exact sim is exponential). Set None to disable.
 
-def syntax_reward(circuit_string: str) -> float:
-    """
-    A simple reward function that checks if the circuit string is valid QASM syntax.
-    """
-    # Attempt to parse the circuit string as QASM
-    # print(f"normalized circuit: ||{circuit_string}||")
-    try:
-        qiskit_circuit = parse(circuit_string)
-        return 1.0  # Return a high reward for valid syntax
-    except Exception as e:
-        # If parsing fails, the syntax is invalid
-        return -1.0  # Return a low reward for invalid syntax
-
-    
-
-def KL_divergence_reward_cpu(llm_circuit: str, ground_truth_circuit: str) -> float:
-    """
-    A reward function that computes the KL divergence between the given circuit and the ground truth.
-    """
-    llm_circuit = parse(llm_circuit)
-    ground_truth_circuit = parse(ground_truth_circuit)
-    
-    llm_circuit.remove_final_measurements()
-    state = Statevector.from_instruction(llm_circuit)
-    probs = state.probabilities_dict()
-    ground_truth_circuit.remove_final_measurements()
-    ground_truth_state = Statevector.from_instruction(ground_truth_circuit)
-
-    relative_entropy = entropy(
-        list(probs.values()), 
-        list(ground_truth_state.probabilities_dict().values()),
-        base=2,
-        nan_policy='omit'
-    )
-
-    # np.log2(len(probs)) is the maximum possible value for relative entropy
-    # when the distributions are uniform over the same number of outcomes
-    scaled_relative_entropy = relative_entropy / np.log2(len(probs))
-
-    # Lower is better for relative entropy, so we return 1 - scaled_relative_entropy
-    return 1 - scaled_relative_entropy
-
-
+# --------------------------- Helpers ----------------------------
 
 def normalize_qasm(qasm_str: str) -> str:
-    # Convert literal \n into real newlines
-    decoded = qasm_str.encode('utf-8').decode('unicode_escape')
-    # print("After decoding:", repr(decoded))
+    """
+    Normalize a QASM string that might contain literal escape sequences.
+    We convert literal '\n' to newlines, then collapse newlines to spaces.
+    """
+    decoded = qasm_str.encode("utf-8").decode("unicode_escape")
+    return decoded.replace("\n", " ").strip()
 
-    # Now replace newlines with spaces
-    normalized = decoded.replace('\n', ' ').strip()
-    # print("Normalized QASM:", normalized)
-    return normalized
+def _probabilities_full(circuit) -> np.ndarray:
+    """
+    Return full length-2**n computational-basis probabilities from exact statevector.
+    Ensures final measurements are removed before simulation.
+    """
+    circ = circuit.copy()
+    # remove_final_measurements handles both "measure" and classical bits
+    circ.remove_final_measurements()
+    n = circ.num_qubits
+    if MAX_SAFE_QUBITS is not None and n > MAX_SAFE_QUBITS:
+        raise MemoryError(
+            f"Circuit has {n} qubits; exceeds MAX_SAFE_QUBITS={MAX_SAFE_QUBITS} for exact simulation."
+        )
+    sv = Statevector.from_instruction(circ)
+    # Qiskit guarantees computational basis order for probabilities()
+    probs = sv.probabilities()  # np.ndarray, shape (2**n,)
+    # Numerical cleanup: due to floating error, values might be ~-1e-16; clip and renormalize
+    probs = np.clip(probs, 0.0, 1.0)
+    s = probs.sum()
+    if not np.isfinite(s) or s <= 0:
+        raise ValueError("Invalid probability vector (sum is non-positive or non-finite).")
+    return probs / s
+
+def _kl(a: np.ndarray, b: np.ndarray) -> float:
+    """
+    KL(a||b) with ε-smoothing and safe renormalization. Natural log base.
+    """
+    a = np.asarray(a, dtype=float)
+    b = np.asarray(b, dtype=float)
+    a = a + EPS
+    b = b + EPS
+    a = a / a.sum()
+    b = b / b.sum()
+    return float(np.sum(a * (np.log(a) - np.log(b))))
+
+def js_distance(p: np.ndarray, q: np.ndarray) -> float:
+    """
+    Jensen–Shannon distance in [0,1]. Uses natural logs internally, scales by log(2).
+    """
+    m = 0.5 * (p + q)
+    js_div = 0.5 * _kl(p, m) + 0.5 * _kl(q, m)
+    # Convert JS divergence to distance and normalize to [0,1]
+    return float(np.sqrt(js_div / np.log(2.0)))
+
+# --------------------------- Rewards ----------------------------
+
+def syntax_reward(qasm_str: str) -> float:
+    """
+    Light shaping: +0.2 if parseable, -0.2 otherwise.
+    """
+    try:
+        parse(qasm_str)
+        return SYNTAX_OK_BONUS
+    except Exception:
+        return SYNTAX_BAD_PENALTY
+
+def dist_reward_exact(llm_qasm: str, gt_qasm: str) -> float:
+    """
+    1 - JS_distance between exact probability vectors of the two circuits.
+    Returns value in [0,1], where 1 means identical output distributions.
+    """
+    llm_circ = parse(llm_qasm)
+    gt_circ = parse(gt_qasm)
+    p = _probabilities_full(llm_circ)
+    q = _probabilities_full(gt_circ)
+    d = js_distance(p, q)     # 0 (same) → 1 (very different)
+    return 1.0 - d
 
 def reward_calculator(circuit_string: str, ground_truth: str) -> float:
     """
-    A function to compute the reward based on the type specified.
+    Final reward:
+      - early exit on syntax failure,
+      - otherwise syntax bonus + distribution similarity.
     """
-    syntax_reward_value = syntax_reward(circuit_string)
-    if syntax_reward_value < 0:
-        return syntax_reward_value
-    # If the syntax is valid, compute the KL divergence reward
-    return 2 * KL_divergence_reward_cpu(circuit_string, ground_truth) + syntax_reward_value
+    s = syntax_reward(circuit_string)
+    if s < 0:
+        return s
+    return s + dist_reward_exact(circuit_string, ground_truth)
 
+# --------------------------- CLI ----------------------------
 
-def main(response_file_path: str,  ground_truth_file_path: str)-> float:
-    # Read the circuit string from the file
-    with open(response_file_path, "r") as file:
-        response_circuit_string = (file.read())
-        response_circuit_string = normalize_qasm(response_circuit_string)
-        
-    with open(ground_truth_file_path, "r") as file:
-        truth_circuit_string = (file.read())
-        truth_circuit_string = normalize_qasm(truth_circuit_string)
-    # Compute the syntax reward
+def main(response_file_path: str, ground_truth_file_path: str) -> float:
+    with open(response_file_path, "r", encoding="utf-8") as f:
+        response_qasm = normalize_qasm(f.read())
+    with open(ground_truth_file_path, "r", encoding="utf-8") as f:
+        gt_qasm = normalize_qasm(f.read())
+    return reward_calculator(response_qasm, gt_qasm)
 
-    result = reward_calculator(response_circuit_string, truth_circuit_string)
-    return result
-
-# Example usage
 if __name__ == "__main__":
-    import sys
     if len(sys.argv) != 3:
-        print("Usage: python reward.py <response_file_path> <ground_truth_file_path>")
-        exit(1)
-    else:
-        response_file_path = sys.argv[1]
-        ground_truth_file_path = sys.argv[2]
-        result = main(response_file_path, ground_truth_file_path)
+        print("Usage: python quantum_syntax_reward.py <response_file_path> <ground_truth_file_path>")
+        sys.exit(1)
+    try:
+        result = main(sys.argv[1], sys.argv[2])
         print(f"Reward: {result}")
-        exit(0)
+        sys.exit(0)
+    except Exception as e:
+        # Surface the error clearly; your trainer/logger can catch this.
+        print(f"Error computing reward: {e}")
+        sys.exit(2)
