@@ -101,136 +101,12 @@ def expectation_value_reward(circuit_string: str, ground_truth: dict) -> float:
     return 1 - min_max_normalized_value
 
 
-def expectation_value_reward_pennylane(circuit_in, ground_truth: dict, params = None) -> float:
-    """
-    A reward function that computes the expectation value of the circuit using PennyLane.
-    """
-    # Load circuit and convert to PennyLane
-    if type(circuit_in) is str:
-        llm_circuit = loads(circuit_in)
-        llm_circuit.remove_final_measurements()
-
-        # Convert to PennyLane format
-        qfunc = qml.from_qiskit(llm_circuit)
-        n_qubits = llm_circuit.num_qubits
-
-        # Create PennyLane device and QNode
-        dev = qml.device('default.qubit', wires=n_qubits)
-        
-        @qml.qnode(dev)
-        def circuit():
-            qfunc(wires=range(n_qubits))
-            return qml.expval(pennylane_hamiltonian)
-    else:
-        circuit = circuit_in
-
-    # Construct PennyLane Hamiltonian
-    pennylane_hamiltonian = construct_pennylane_hamiltonian(ground_truth["cost_hamiltonian"])
-    
-    # Get ground truth values
-    smallest_eigenvalue = json.loads(ground_truth["exact_solution"])["smallest_eigenvalues"][0]
-    
-    # Calculate expectation value
-    expectation_value = circuit(params) if params is not None else circuit()
-    
-    # Compute the largest eigenvalue from the cost Hamiltonian
-    hamiltonian_matrix = pennylane_hamiltonian.matrix()
-    eigenvalues = np.linalg.eigvalsh(hamiltonian_matrix)  # eigvalsh for Hermitian matrices
-    largest_eigenvalue = np.max(eigenvalues)
-    
-    # Normalize the expectation value
-    print(f"PennyLane Expectation Value: {expectation_value}, Smallest Eigenvalue: {smallest_eigenvalue}, Largest Eigenvalue: {largest_eigenvalue}")
-    min_max_normalized_value = (expectation_value - smallest_eigenvalue) / (largest_eigenvalue - smallest_eigenvalue)
-    return 1 - min_max_normalized_value
-
-
-def optimization_reward_pennylane(circuit_string: str, ground_truth: dict) -> float:
-    """
-    A reward function that aims to optimize the circuit given the LLM generated warm-start circuit with initial parameters
-    """
-
-    qiskit_qc = loads(circuit_string)
-    H = ground_truth["cost_hamiltonian"]
-    pennylane_H = construct_pennylane_hamiltonian(H)
-
-    qiskit_symbolic_param_qc, param_map = parametrize_qiskit_circuit(qiskit_qc)
-    param_list = list(param_map.items())
-    param_values = [item[0] for item in param_list]
-    param_objects = [item[1] for item in param_list]
-
-    initial_params_torch = torch.tensor(param_values, dtype=torch.float32, requires_grad=True)
-
-    qfunc = qml.from_qiskit(qiskit_symbolic_param_qc)
-    n_qubits = qiskit_symbolic_param_qc.num_qubits
-
-    # Initialize model and optimizer
-    model = QuantumCircuit(qfunc, n_qubits, pennylane_H)
-    optimizer = optim.Adam([initial_params_torch], lr=0.01)
-
-    params = initial_params_torch
-
-    # Stopping criteria parameters
-    max_iterations = 100
-    tolerance = 1e-6
-    patience = 10
-    min_improvement = 1e-8
-    total_steps = 1
-
-    # Tracking variables
-    best_cost = float('inf')
-    no_improvement_count = 0
-    prev_cost = None
-
-    for i in range(max_iterations):
-        optimizer.zero_grad()
-        cost = model(params)
-        cost.backward()
-        optimizer.step()
-        
-        current_cost = cost.item()
-        
-        # Check for convergence based on cost change
-        if prev_cost is not None:
-            cost_change = abs(current_cost - prev_cost)
-            if cost_change < tolerance:
-                print(f'Converged at step {i}: cost {current_cost:.4f} < tolerance {tolerance}')
-                break
-        
-        # Check for improvement and early stopping
-        if current_cost < best_cost - min_improvement:
-            best_cost = current_cost
-            no_improvement_count = 0
-        else:
-            no_improvement_count += 1
-            if no_improvement_count >= patience:
-                print(f'Early stopping at step {i}: no improvement for {patience} steps')
-                break
-        
-        prev_cost = current_cost
-        
-        if i % 10 == 0:
-            print(f'Step {i}, Cost: {current_cost:.6f}')
-        
-        total_steps += 1
-
-    final_params = params.detach().numpy()
-
-    optimized_circuit = model.get_circuit()
-
-    # Smaller is better in training steps
-    train_reward = 1 / total_steps
-    
-    # After optimization we favor those cases when the final cost is close to the optimal eigenvalue
-    cost_reward = expectation_value_reward_pennylane(optimized_circuit, ground_truth, final_params)
-
-    return (train_reward + cost_reward) / 2
-
-
 def optimization_reward_qiskit(circuit_string: str, ground_truth: dict) -> float:
     """
-    A reward function that aims to optimize the circuit given the LLM generated warm-start circuit with initial parameters
+    A reward function that aims to optimize the circuit given the LLM generated warm-start circuit with initial parameters.
+    
+    Final reward depends on the optimization steps and the fact how close to the ground truth the optimization managed to take the circuit.
     """
-    #optimal_eigenvalue = json.loads(ground_truth["exact_solution"])["smallest_eigenvalues"][0]
     qiskit_qc = loads(circuit_string)
     H = ground_truth["cost_hamiltonian"]
     qiskit_hamiltonian = construct_qiskit_hamiltonian(H)
@@ -300,8 +176,137 @@ def optimization_reward_qiskit(circuit_string: str, ground_truth: dict) -> float
         {param_objects[i]: result.x[i] for i in range(len(result.x))}
     )
     # Smaller is better in training steps
-    train_reward = 1/total_steps
+    train_reward = 1 / total_steps
     # After optimization we favor those cases when the final cost is close to the optimal eigenvalue
     cost_reward = expectation_value_reward(dumps(optimized_circuit), ground_truth)
+
+    return (train_reward + cost_reward) / 2
+
+
+
+# Here are the extra features relying on Pennylane
+# =================================================
+# It might be better to use Qiskit version than this
+def expectation_value_reward_pennylane(circuit_in, ground_truth: dict, params = None) -> float:
+    """
+    A reward function that computes the expectation value of the circuit using PennyLane.
+    """
+    # Load circuit and convert to PennyLane
+    if type(circuit_in) is str:
+        llm_circuit = loads(circuit_in)
+        llm_circuit.remove_final_measurements()
+
+        # Convert to PennyLane format
+        qfunc = qml.from_qiskit(llm_circuit)
+        n_qubits = llm_circuit.num_qubits
+
+        # Create PennyLane device and QNode
+        dev = qml.device('default.qubit', wires=n_qubits)
+        
+        @qml.qnode(dev)
+        def circuit():
+            qfunc(wires=range(n_qubits))
+            return qml.expval(pennylane_hamiltonian)
+    else:
+        circuit = circuit_in
+
+    # Construct PennyLane Hamiltonian
+    pennylane_hamiltonian = construct_pennylane_hamiltonian(ground_truth["cost_hamiltonian"])
+    
+    # Get ground truth values
+    smallest_eigenvalue = json.loads(ground_truth["exact_solution"])["smallest_eigenvalues"][0]
+    
+    # Calculate expectation value
+    expectation_value = circuit(params) if params is not None else circuit()
+    
+    # Compute the largest eigenvalue from the cost Hamiltonian
+    hamiltonian_matrix = pennylane_hamiltonian.matrix()
+    eigenvalues = np.linalg.eigvalsh(hamiltonian_matrix)  # eigvalsh for Hermitian matrices
+    largest_eigenvalue = np.max(eigenvalues)
+    
+    # Normalize the expectation value
+    print(f"PennyLane Expectation Value: {expectation_value}, Smallest Eigenvalue: {smallest_eigenvalue}, Largest Eigenvalue: {largest_eigenvalue}")
+    min_max_normalized_value = (expectation_value - smallest_eigenvalue) / (largest_eigenvalue - smallest_eigenvalue)
+    return 1 - min_max_normalized_value
+
+
+# =================================================
+# It might be better to use Qiskit version than this
+def optimization_reward_pennylane(circuit_string: str, ground_truth: dict) -> float:
+    """
+    A reward function that aims to optimize the circuit given the LLM generated warm-start circuit with initial parameters
+    """
+
+    # Stopping criteria parameters
+    max_iterations = 100
+    tolerance = 1e-6
+    patience = 10
+    min_improvement = 1e-8
+    total_steps = 1
+
+    # Tracking variables
+    best_cost = float('inf')
+    no_improvement_count = 0
+    prev_cost = None
+    learning_rate = 0.01
+
+
+    qiskit_qc = loads(circuit_string)
+    H = ground_truth["cost_hamiltonian"]
+    pennylane_H = construct_pennylane_hamiltonian(H)
+
+    qiskit_symbolic_param_qc, param_map = parametrize_qiskit_circuit(qiskit_qc)
+    param_list = list(param_map.items())
+    param_values = [item[0] for item in param_list]
+    param_objects = [item[1] for item in param_list]
+
+    params = torch.tensor(param_values, dtype=torch.float32, requires_grad=True)
+
+    qfunc = qml.from_qiskit(qiskit_symbolic_param_qc)
+    n_qubits = qiskit_symbolic_param_qc.num_qubits
+
+    # Initialize model and optimizer
+    model = QuantumCircuit(qfunc, n_qubits, pennylane_H)
+    optimizer = optim.Adam([params], lr=learning_rate)
+
+    for i in range(max_iterations):
+        optimizer.zero_grad()
+        cost = model(params)
+        cost.backward()
+        optimizer.step()
+        current_cost = cost.item()
+        
+        # Check for convergence based on cost change
+        if prev_cost is not None:
+            cost_change = abs(current_cost - prev_cost)
+            if cost_change < tolerance:
+                print(f'Converged at step {i}: cost {current_cost:.4f} < tolerance {tolerance}')
+                break
+        
+        # Check for improvement and early stopping
+        if current_cost < best_cost - min_improvement:
+            best_cost = current_cost
+            no_improvement_count = 0
+        else:
+            no_improvement_count += 1
+            if no_improvement_count >= patience:
+                print(f'Early stopping at step {i}: no improvement for {patience} steps')
+                break
+        
+        prev_cost = current_cost
+        
+        if i % 10 == 0:
+            print(f'Step {i}, Cost: {current_cost:.6f}')
+        
+        total_steps += 1
+
+    final_params = params.detach().numpy()
+    optimized_circuit = model.get_circuit()
+
+    # Smaller is better in training steps
+    train_reward = 1 / total_steps
+
+    # After optimization we favor those cases when the final cost is close to the optimal eigenvalue
+    cost_reward = expectation_value_reward_pennylane(optimized_circuit, ground_truth, final_params)
 
     return (train_reward + cost_reward) / 2
