@@ -2,6 +2,21 @@ import re
 from qiskit.circuit import QuantumCircuit, Parameter
 from qiskit.quantum_info import SparsePauliOp
 import pennylane as qml
+import numpy as np
+
+def reverse_hamiltonian_qubit_order(hamiltonian, n_qubits):
+    """
+    Reverse the qubit ordering in a Hamiltonian matrix.
+    """
+    perm = []
+    for i in range(2**n_qubits):
+        binary = format(i, f'0{n_qubits}b')
+        reversed_binary = binary[::-1]
+        new_index = int(reversed_binary, 2)
+        perm.append(new_index)
+    
+    # Apply permutation to both rows and columns
+    return hamiltonian[np.ix_(perm, perm)]
 
 def construct_pennylane_hamiltonian(expression):
     # First, handle terms with tensor products (@)
@@ -63,8 +78,18 @@ def construct_pennylane_hamiltonian(expression):
 
 
 def construct_qiskit_hamiltonian(expression):
-    """ "
-    Construct a Qiskit Hamiltonian from a string expression encoding Pennylane Hamiltonian."
+    """
+    Construct a Qiskit Hamiltonian from a string expression encoding Pennylane Hamiltonian.
+    """
+    pennylane_H = construct_pennylane_hamiltonian(expression)
+    reversed_H = reverse_hamiltonian_qubit_order(pennylane_H.matrix(), 
+                                                 len(pennylane_H.wires))
+    return SparsePauliOp.from_operator(reversed_H)
+
+
+def construct_qiskit_hamiltonian_old(expression):
+    """
+    Construct a Qiskit Hamiltonian from a string expression encoding Pennylane Hamiltonian.
     """
     # First, handle terms with tensor products (@)
     term_pattern_tensor = re.compile(
@@ -119,19 +144,20 @@ def construct_qiskit_hamiltonian(expression):
 
     for term in terms:
         # Initialize with identity (I) for all qubits
-        pauli_str = "I" * (max_qubit + 1)
+        pauli_list = ["I"] * (max_qubit + 1)
 
-        # Replace Identity with appropriate Pauli operator at correct positions
-        for pauli, qubit in term["operators"]:
-            pauli_str = pauli_str[:qubit] + pauli + pauli_str[qubit + 1 :]
+        # Sort operators by qubit index to ensure consistent ordering
+        sorted_operators = sorted(term["operators"], key=lambda x: x[1])
+        
+        # Place each Pauli operator at the correct position
+        for pauli, qubit in sorted_operators:
+            pauli_list[qubit] = pauli
 
-        # Reverse the string as qiskit expects the least significant qubit on the right
-        # pauli_str = pauli_str[::-1]
-
+        pauli_str = "".join(pauli_list)
         paulis.append(pauli_str)
         coeffs.append(term["coefficient"])
 
-    return SparsePauliOp(paulis, coeffs)
+    return SparsePauliOp(paulis, np.array(coeffs, dtype=float))
 
 
 def parametrize_qiskit_circuit(circuit):
