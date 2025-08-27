@@ -454,32 +454,12 @@ def optimization_refinement_reward(
         F = _fidelity_for_params(circ_template, params, x, target_sv)
         return 1.0 - F
     # Use SciPy Nelder-Mead if available
-    if minimize is not None:
-        res = minimize(
-            obj, x0,
-            method="Nelder-Mead",
-            options=dict(maxiter=max_iters, xatol=1e-4, fatol=1e-6, adaptive=True)
-        )
-        E = float(res.fun)
-    else:
-        # Fallback: tiny random-restart hill-climb
-        rng = np.random.default_rng(123)
-        x = x0.copy()
-        best_E = obj(x)
-        no_improve = 0
-        for _ in range(random_fallback_trials):
-            step = rng.normal(scale=0.2, size=len(params))
-            cand = x + step
-            E_cand = obj(cand)
-            if E_cand < best_E - 1e-6:
-                x = cand
-                best_E = E_cand
-                no_improve = 0
-            else:
-                no_improve += 1
-                if no_improve >= patience:
-                    break
-        E = float(best_E)
+    res = minimize(
+        obj, x0,
+        method="Nelder-Mead",
+        options=dict(maxiter=max_iters, xatol=1e-4, fatol=1e-6, adaptive=True)
+    )
+    E = float(res.fun)
     F_final = max(0.0, min(1.0, 1.0 - E))
     efficiency = 1.0 / (1.0 + float(evals))
     total = 0.8 * F_final + 0.2 * efficiency
