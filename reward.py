@@ -88,12 +88,8 @@ def expectation_value_reward(circuit_string: str, ground_truth: dict) -> float:
     statevector = Statevector.from_instruction(llm_circuit)
     cost_hamiltonian = construct_qiskit_hamiltonian(ground_truth["cost_hamiltonian"])
     smallest_eigenvalue = json.loads(ground_truth["exact_solution"])["smallest_eigenvalues"][0]
+    largest_eigenvalue = json.loads(ground_truth["exact_solution"])["largest_eigenvalue"]
     expectation_value = statevector.expectation_value(cost_hamiltonian).real
-
-    # Compute the largest eigenvalue from the cost Hamiltonian
-    # It might be better to do this offline and extend the training data
-    eigenvalues = np.linalg.eigvalsh(cost_hamiltonian)  # eigvalsh for Hermitian matrices
-    largest_eigenvalue = np.max(eigenvalues)
 
     # Normalize the expectation value
     print(f"Expectation Value: {expectation_value}, Smallest Eigenvalue: {smallest_eigenvalue}, Largest Eigenvalue: {largest_eigenvalue}")
