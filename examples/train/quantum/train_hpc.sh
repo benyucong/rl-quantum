@@ -8,4 +8,5 @@
 #SBATCH --partition=gpu-h200-141g-ellis
 
 cd ../../../
-bash examples/train/quantum/train_qwen_3B_quantum.sh
+export HF_HOME=$(pwd)/data/huggingface
+bash examples/train/quantum/train_qwen_4B_quantum.sh
