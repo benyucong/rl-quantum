@@ -10,7 +10,13 @@ Reward = syntax_bonus + (1 - JS_distance(p_llm, p_gt))
 - Syntax bonus is small to avoid dominating learning signals.
 
 CLI:
-  python quantum_syntax_reward.py <response_qasm> <ground_truth_qasm> <cost_hamiltonian> <smallest_eigenvalue> <largest_eigenvalue>
+  python quantum_reward_cal.py <response_qasm> <ground_truth_qasm> <cost_hamiltonian> <smallest_eigenvalue> <largest_eigenvalue>
+  e.g.
+    python quantum_reward_cal.py \
+    "OPENQASM 3.0; include \"stdgates.inc\"; qubit[1] q; h q[0];" \
+    "OPENQASM 3.0; include \"stdgates.inc\"; qubit[1] q;" \
+    "1.0 * Z(0)" \
+    -1.0 1.0
 Prints:
   Reward: <float>
 """
@@ -198,7 +204,7 @@ def js_distance(p: np.ndarray, q: np.ndarray) -> float:
 
 def syntax_reward(qasm_str: str) -> float:
     """
-    Light shaping: +0.2 if parseable, -0.2 otherwise.
+    Light shaping: +0.2 if parseable, -1.0 otherwise.
     """
     try:
         parse(qasm_str)
@@ -360,7 +366,7 @@ def main(response_code: str, ground_truth_code: str, cost_hamiltonian: str, smal
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
-        print("Usage: python quantum_syntax_reward.py response_code ground_truth_code cost_hamiltonian smallest_eigenvalue largest_eigenvalue")
+        print("Usage: python quantum_reward_cal.py response_code ground_truth_code cost_hamiltonian smallest_eigenvalue largest_eigenvalue")
         sys.exit(1)
     try:
         result = main(sys.argv[1], sys.argv[2], sys.argv[3],
