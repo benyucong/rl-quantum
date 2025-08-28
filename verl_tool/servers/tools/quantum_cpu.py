@@ -168,8 +168,8 @@ def execute_qasm(code: Union[str, List[str]], ground_truth: Union[str, List[str]
     # Create a minimal environment instead of copying everything
     original_env = os.environ.copy()
     
-    # Get the absolute path to quantum_syntax_reward.py
-    reward_script_path = os.path.abspath(os.path.join(os.getcwd(), "verl_tool/servers/tools/utils/quantum_syntax_reward.py"))
+    # Get the absolute path to quantum_reward_cal.py
+    reward_script_path = os.path.abspath(os.path.join(os.getcwd(), "verl_tool/servers/tools/utils/quantum_reward_cal.py"))
     
     # set cwd to be a temp dir
     cwd = os.path.join(os.getcwd(), "tmp/firejail", str(uuid.uuid4().hex)) # local tmp dir
