@@ -22,7 +22,7 @@ from qiskit_qasm3_import import parse
 import re
 from qiskit.circuit import QuantumCircuit, Parameter
 from qiskit.quantum_info import SparsePauliOp
-from qiskit.qasm3 import dumps
+from qiskit.qasm3 import loads, dumps
 from scipy.optimize import minimize
 
 # --------------------------- Tunables ---------------------------
@@ -220,14 +220,14 @@ def dist_reward_exact(llm_qasm: str, gt_qasm: str) -> float:
     return 1.0 - d
 
 
-def expectation_value_reward(llm_circuit: str, ground_truth: str, cost_hamiltonian: str, smallest_eigenvalue: float, largest_eigenvalue: float) -> float:
+def expectation_value_reward(llm_circuit: str, cost_hamiltonian: str, smallest_eigenvalue: float, largest_eigenvalue: float) -> float:
     """
     A reward function that computes the expectation value of the circuit.
     """
+    llm_circuit = parse(llm_circuit)
     llm_circuit.remove_final_measurements()
     statevector = Statevector.from_instruction(llm_circuit)
-    cost_hamiltonian = construct_qiskit_hamiltonian(
-        ground_truth["cost_hamiltonian"])
+    cost_hamiltonian = construct_qiskit_hamiltonian(cost_hamiltonian)
     expectation_value = statevector.expectation_value(cost_hamiltonian).real
 
     # Normalize the expectation value
@@ -238,12 +238,13 @@ def expectation_value_reward(llm_circuit: str, ground_truth: str, cost_hamiltoni
     return 1 - min_max_normalized_value
 
 
-def optimization_reward_qiskit(qiskit_qc: str, ground_truth: dict, H: str) -> float:
+def optimization_reward_qiskit(qiskit_qc: str, H: str, smallest_eigenvalue: float, largest_eigenvalue: float) -> float:
     """
     A reward function that aims to optimize the circuit given the LLM generated warm-start circuit with initial parameters.
 
     Final reward depends on the optimization steps and the fact how close to the ground truth the optimization managed to take the circuit.
     """
+    qiskit_qc = parse(qiskit_qc)
     qiskit_hamiltonian = construct_qiskit_hamiltonian(H)
     qiskit_symbolic_param_qc, param_map = parametrize_qiskit_circuit(qiskit_qc)
     param_items = list(param_map.items())
@@ -315,32 +316,36 @@ def optimization_reward_qiskit(qiskit_qc: str, ground_truth: dict, H: str) -> fl
     train_reward = 1 / total_steps
     # After optimization we favor those cases when the final cost is close to the optimal eigenvalue
     cost_reward = expectation_value_reward(
-        dumps(optimized_circuit), ground_truth)
+        dumps(optimized_circuit), smallest_eigenvalue, largest_eigenvalue)
 
-    return (train_reward + cost_reward) / 2
+    return 0.8*train_reward + 0.2*cost_reward
 
 
 def reward_calculator(circuit_string: str, ground_truth: str, cost_hamiltonian: str, smallest_eigenvalue: float, largest_eigenvalue: float) -> float:
     """
     Final reward:
       - early exit on syntax failure,
-      - otherwise syntax bonus + distribution similarity.
+      - otherwise syntax bonus + distribution similarity + expectation_value + optimization_value.
     """
     s = syntax_reward(circuit_string)
     if s < 0:
         return s
     # Distribution reward
     dist_reward = dist_reward_exact(circuit_string, ground_truth)
-    if dist_reward < EXPECTED_THRESHOLD:
-        # if distribution reward is small, we calculate expectation value reward
-        exception_value = expectation_value_reward(
-            circuit_string, ground_truth, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
-        return s + 0.6*dist_reward + 0.4*exception_value
-    elif dist_reward > OPTIMIZATION_THRESHOLD:
-        # if distribution reward is large, we calculate optimization reward
+
+    if dist_reward > OPTIMIZATION_THRESHOLD:
         optimization_value = optimization_reward_qiskit(
-            circuit_string, ground_truth, cost_hamiltonian)
+            circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
         return s + 0.6*dist_reward + 0.4*optimization_value
+    if dist_reward < EXPECTED_THRESHOLD:
+        expectation_value = expectation_value_reward(
+            circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
+        if expectation_value > OPTIMIZATION_THRESHOLD:
+            optimization_value = optimization_reward_qiskit(
+                circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
+            return s + 0.3*dist_reward + 0.3*expectation_value + 0.4*optimization_value
+        else:
+            return s + 0.3*dist_reward + 0.3*expectation_value
     return s + dist_reward
 
 # --------------------------- CLI ----------------------------
