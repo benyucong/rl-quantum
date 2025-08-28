@@ -183,7 +183,6 @@ def main(
                     "cost_hamiltonian": cost_hamiltonian,
                     "smallest_eigenvalue": smallest_eigenvalue,
                     "largest_eigenvalue": largest_eigenvalue,
-                    "inputs_outputs": None,
                 }
             }
             return data

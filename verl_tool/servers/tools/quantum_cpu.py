@@ -11,6 +11,7 @@ import os
 import uuid
 import shutil
 import resource
+import json
 from typing import Tuple, Dict, Any, Optional, Union, List
 
 # Timeout for code execution in seconds
@@ -152,7 +153,7 @@ def set_limits():
     # File size limit (500 MB)
     resource.setrlimit(resource.RLIMIT_FSIZE, (500*1024*1024, 500*1024*1024))
 
-def execute_qasm(code: Union[str, List[str]], ground_truth: Union[str, List[str]], timeout: int=TIMEOUT, stdin: Optional[str] = None, python_path: str = None, pre_import_lib: bool = False, use_firejail: bool=False) -> Tuple[str, bool]:
+def execute_qasm(code: Union[str, List[str]], ground_truth: Union[str, List[str]], extra_field: dict, timeout: int=TIMEOUT, stdin: Optional[str] = None, python_path: str = None, pre_import_lib: bool = False, use_firejail: bool=False) -> Tuple[str, bool]:
     """
     Execute qasm code in a Firejail sandbox with a timeout.
     
@@ -177,19 +178,22 @@ def execute_qasm(code: Union[str, List[str]], ground_truth: Union[str, List[str]
     if not os.path.exists(cwd):
         os.makedirs(cwd, exist_ok=True)
     # write response code to a temp file
-    response_file_name = "response.qasm"
-    response_file_path = os.path.join(cwd, response_file_name)
+    # response_file_name = "response.qasm"
+    # response_file_path = os.path.join(cwd, response_file_name)
     # code = wrap_code_blocks(code)
-    with open(response_file_path, "w") as f:
-        f.write(code)
+    # with open(response_file_path, "w") as f:
+    #     f.write(code)
         
     # write code to a temp file
-    truth_file_name = "truth.qasm"
-    truth_file_path = os.path.join(cwd, truth_file_name)
+    # truth_file_name = "truth.qasm"
+    # truth_file_path = os.path.join(cwd, truth_file_name)
     # code = wrap_code_blocks(code)
-    with open(truth_file_path, "w") as f:
-        f.write(ground_truth)
+    # with open(truth_file_path, "w") as f:
+    #     f.write(ground_truth)
 
+    cost_hamiltonian = extra_field['cost_hamiltonian']
+    smallest_eigenvalue = extra_field['smallest_eigenvalue']
+    largest_eigenvalue = extra_field['largest_eigenvalue']
 
     if not python_path:
         python_path = "python3"
@@ -233,11 +237,11 @@ def execute_qasm(code: Union[str, List[str]], ground_truth: Union[str, List[str]
             "--rlimit-fsize=2m",  # Limit file size
             "--rlimit-as=1096m"  # Limit address space
         ]
-        command.extend([python_path, reward_script_path, response_file_path, truth_file_path])
+        command.extend([python_path, reward_script_path, code, ground_truth, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue])
         subprocess_cwd = cwd
     else:
         env = original_env
-        command = [python_path, reward_script_path, response_file_name, truth_file_name]
+        command = [python_path, reward_script_path, code, ground_truth, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue]
         subprocess_cwd = cwd  # Use the temporary directory as the current working directory
 
     has_error = False
@@ -428,14 +432,14 @@ class QASMCodeTool(BaseTool):
             if len(test_input) > 0:
                 stdin = test_input[0].strip()
             
-            new_code = parsed_action # 
             if self.enable_history_code_execution:
                 previous_parsed_code = [obs["action"] for obs in env["previous_obs"]]
                 code_to_execute = previous_parsed_code + [parsed_action]
             else:
                 code_to_execute = parsed_action
-            
-            stdout, stderr, has_error = execute_qasm(code_to_execute, ground_truth, self.timeout, stdin, self.python_path, self.pre_import_lib, self.use_firejail)
+
+
+            stdout, stderr, has_error = execute_qasm(code_to_execute, ground_truth,extra_field, self.timeout, stdin, self.python_path, self.pre_import_lib, self.use_firejail)
             execution_result = stdout + "\n" + stderr
             execution_result = execution_result.strip(' \n')
             observation = execution_result

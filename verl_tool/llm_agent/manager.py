@@ -456,6 +456,9 @@ class AgentActorManager:
         rollings = gen_batch
         traj_ids = gen_batch.non_tensor_batch['traj_ids']
         ground_truths = [rm['ground_truth'] for rm in gen_batch.non_tensor_batch['reward_model']]
+        # cost_hamiltonians = [extra['cost_hamiltonian'] for extra in gen_batch.non_tensor_batch['extra_info']]
+        # smallest_eigenvalues = [extra['smallest_eigenvalue'] for extra in gen_batch.non_tensor_batch['extra_info']]
+        # largest_eigenvalues = [extra['largest_eigenvalue'] for extra in gen_batch.non_tensor_batch['extra_info']]
 
         turns_stats_extra = {
             "action_lengths": [[] for _ in range(gen_batch.batch['input_ids'].shape[0])],
