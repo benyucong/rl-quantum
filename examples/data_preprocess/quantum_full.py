@@ -130,8 +130,6 @@ def main(
     local_dir = local_dir / (dataset_path.split('/')[-1] + local_dir_post_fix)
     local_dir.mkdir(parents=True, exist_ok=True)
 
-    # 500 examples for testing
-    # dataset = dataset.train_test_split(test_size=500, seed=42) 
     train_dataset = datasets.load_dataset(dataset_path, split='train')
     test_dataset = datasets.load_dataset(dataset_path, split='test')
 
@@ -142,8 +140,9 @@ def main(
             question_raw = example.pop('prompt')
             ground_truth = example.pop('circuit_with_params')
             cost_hamiltonian = example.pop('cost_hamiltonian')
-            smallest_eigenvalue = json.loads(example.pop('exact_solution'))["smallest_eigenvalues"][0]
-            largest_eigenvalue = json.loads(example.pop('exact_solution'))["largest_eigenvalues"]
+            tmp_exact_solution = json.loads(example.pop('exact_solution'))
+            smallest_eigenvalue = str(tmp_exact_solution["smallest_eigenvalues"][0])
+            largest_eigenvalue = str(tmp_exact_solution["largest_eigenvalue"])
 
             if propmt_type == 'complex':
                 if add_r1:
@@ -206,10 +205,10 @@ if __name__ == '__main__':
     fire.Fire(main)
     
 """
-python examples/data_preprocess/quantum.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt True --propmt_type complex
-python examples/data_preprocess/quantum.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt True --propmt_type naive
-python examples/data_preprocess/quantum.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt False --propmt_type complex
-python examples/data_preprocess/quantum.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt False --propmt_type naive
-python examples/data_preprocess/quantum.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt True --propmt_type linus
-python examples/data_preprocess/quantum.py --local_dir data/rl-qasm --add_execution_prompt True --propmt_type linus
+python examples/data_preprocess/quantum_full.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt True --propmt_type complex
+python examples/data_preprocess/quantum_full.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt True --propmt_type naive
+python examples/data_preprocess/quantum_full.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt False --propmt_type complex
+python examples/data_preprocess/quantum_full.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt False --propmt_type naive
+python examples/data_preprocess/quantum_full.py --dataset_path Benyucong/quantum-qasm --local_dir data/qasm --add_execution_prompt True --propmt_type linus
+python examples/data_preprocess/quantum_full.py --local_dir data/rl-qasm --propmt_type linus
 """
