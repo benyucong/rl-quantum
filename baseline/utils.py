@@ -1,6 +1,9 @@
 import os
 import re
 
+with open("Prompt/system.txt", "r") as f:
+    SYSTEM_PROMPT = f.read().strip()
+
 def extract_qasm_block(text: str) -> str:
     
     match = re.search(r"```qasm(.*?)```", text, re.DOTALL)
@@ -9,7 +12,7 @@ def extract_qasm_block(text: str) -> str:
     else:
         raise ValueError("No QASM block found in the input text.")
 
-def save_qasm_code(code: str, filename: str, folder: str = "qasm_outputs"):
+def save_qasm_code(code: str, filename: str, folder: str = "qasm_outputs_gpt"):
     
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, filename)
@@ -49,5 +52,33 @@ def load_prompt(sample, few_shot_path='Prompt/few_shot.txt'):
 
     return final_user_prompt
 
+def load_self_debug_prompt(previous_prompt, response, error_message):
+    print("Loading self-debug prompt...")
+    
+    # debug_prompts = (
+    #     "The QASM code you generated contains an error. Please analyze and fix it.\n"
+    #     f"Error message: {error_message}\n\n"
+    #     "Follow these steps to debug:\n"
+    #     "1. Carefully review the QASM syntax in your generated code\n"
+    #     "2. Check that all qubit operations are within the declared qubit range\n"
+    #     "3. Verify all gates and operations are valid in QASM 3.0\n"
+    #     "4. Ensure proper initialization and measurement operations\n"
+    #     "5. Check that all parameters are properly defined\n\n"
+    #     "Return the corrected QASM code enclosed in a ```qasm block with no additional text."
+    # )
+    debug_prompts = (
+        "The QASM code you generated contains an error. Please analyze and fix it.\\"
+        f"Error message: {error_message}\\"
+        "Return the corrected QASM code enclosed in a ```qasm block with no additional text.\\"
+    )
+
+    message = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": previous_prompt},
+        {"role": "assistant", "content": response},
+        {"role": "user", "content": debug_prompts}
+    ]
+
+    return message
 
 

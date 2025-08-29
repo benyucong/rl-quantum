@@ -373,6 +373,69 @@ def process_circuits(
 
     return summary_stats, raw_data
 
+def process_circuits_debug(
+    json_file: str, relative_entropy_threshold=0.1
+):
+    with open(json_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    results = []
+    simulator = AerSimulator(method="statevector")
+    error_messages = []
+
+    for idx, sample in enumerate(data):
+        # Because json.loads is not recursive parse
+        sample["dataset_metrics"]["solution"] = json.loads(
+            sample["dataset_metrics"]["solution"]
+        )
+
+        generated_qasm = sample.get("generated_circuit", "")
+        hamiltonian = sample["dataset_metrics"]["cost_hamiltonian"]
+        solution_expectation_value = sample["dataset_metrics"]["solution"]["expectation_value"]
+
+        # ---- Init new params ----
+        sample["qasm_valid"] = False
+        sample["statevector"] = None
+        sample["parse_error"] = None
+        sample["simulation_error"] = None
+        sample["comparison"] = None
+
+        if not generated_qasm:
+            sample["parse_error"] = "No 'generated_circuit' field found."
+            results.append(sample)
+            continue
+
+        # ---- 1) CHECK IF CIRCUIT COMPILES ----
+        try:
+            circuit: QuantumCircuit = parse_qasm_from_str(generated_qasm)
+            sample["qasm_valid"] = True
+            print(f"[INFO] SUCCESS! Compile successful for circuit")
+        except ValueError as err:
+            print(f"[FAIL] Failed to compile circuit: {err}")
+            error_messages.append(f"[FAIL] Failed to compile circuit: {err}")
+            sample["parse_error"] = str(err)
+            results.append(sample)
+            continue
+
+        # --- 2) Simulate and Get Statevector/Probabilities ---
+        try:
+            probs, expectation_value, bitstring = evaluate_qiskit_circuit(
+                circuit, hamiltonian, simulator
+            )
+            sample["most_probable_state_generated"] = bitstring
+            sample["is_most_probable_state_correct"] = is_most_probable_state_correct(
+                sample, bitstring
+            )
+        except Exception as err:
+            print(f"[FAIL] Simulation failed for circuit: {err}")
+            error_messages.append(f"[FAIL] Simulation failed for circuit: {err}")
+            sample["simulation_error"] = str(err)
+            results.append(sample)
+            continue
+
+    
+    return error_messages
+
 
 def main():
     
