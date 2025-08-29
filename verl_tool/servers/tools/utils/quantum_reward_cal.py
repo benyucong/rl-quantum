@@ -322,7 +322,7 @@ def optimization_reward_qiskit(qiskit_qc: str, H: str, smallest_eigenvalue: floa
     train_reward = 1 / total_steps
     # After optimization we favor those cases when the final cost is close to the optimal eigenvalue
     cost_reward = expectation_value_reward(
-        dumps(optimized_circuit), smallest_eigenvalue, largest_eigenvalue)
+        dumps(optimized_circuit), H, smallest_eigenvalue, largest_eigenvalue)
 
     return 0.8*train_reward + 0.2*cost_reward
 
