@@ -12,7 +12,7 @@ def extract_qasm_block(text: str) -> str:
     else:
         raise ValueError("No QASM block found in the input text.")
 
-def save_qasm_code(code: str, filename: str, folder: str = "qasm_outputs_gpt"):
+def save_qasm_code(code: str, filename: str, folder: str = "qasm_outputs_gpt_5"):
     
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, filename)

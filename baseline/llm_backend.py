@@ -34,7 +34,7 @@ def update_base_url(request: httpx.Request) -> None:
     else:
         request.url.path = f"{aalto_openai_endpoint_url}"
 
-def call_gpt_self_debug(message, model: str = "gpt-4o", temperature: float = 0.0):
+def call_gpt_self_debug(message, model: str = "gpt-5", temperature: float = 0.0):
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     response = client.chat.completions.create(
         model=model,
@@ -63,7 +63,7 @@ def call_llm_self_debug(message, model: str = "deepseek") -> str:
         
     return response
 
-def call_gpt(prompt: str, model: str = "gpt-4o", temperature: float = 0.0):
+def call_gpt(prompt: str, model: str = "gpt-5", temperature: float = 0.0):
     client = OpenAI(
         base_url="https://aalto-openai-apigw.azure-api.net",
         api_key=False, # API key not used, and rather set below
