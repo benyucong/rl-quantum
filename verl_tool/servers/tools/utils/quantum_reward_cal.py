@@ -42,6 +42,11 @@ OPTIMIZATION_THRESHOLD = 0.6
 # guardrail (exact sim is exponential). Set None to disable.
 MAX_SAFE_QUBITS = None
 
+# Tunables for mismatch severity
+BASE_MISMATCH_PENALTY = -0.35       # applied if n_llm != n_gt
+PER_EXTRA_QUBIT_PENALTY = -0.08     # per qubit count difference
+PER_ACTIVE_EXTRA_BONUS  = -0.12     # extra hit for each ACTIVE extra qubit
+
 # --------------------------- Utilities ----------------------------
 
 
@@ -142,6 +147,30 @@ def parametrize_qiskit_circuit(circuit):
 
 # --------------------------- Helpers ----------------------------
 
+def _clean_circuit(circ):
+    """Return a copy with final measurements and idle qubits removed (if possible)."""
+    c = circ.copy()
+    try:
+        c.remove_final_measurements()
+    except Exception:
+        pass
+    try:
+        c.remove_idle_qubits()  # no-op on older qiskit-terra
+    except Exception:
+        pass
+    return c
+
+def _active_qubits(circ):
+    """Return set of qubit indices that appear in any non-measure operation."""
+    active = set()
+    for inst in circ.data:
+        op = inst.operation
+        # Skip classical-only and measurement ops
+        if getattr(op, "name", "") in ("measure", "barrier", "delay", "reset"):
+            continue
+        for q in inst.qubits:
+            active.add(circ.find_bit(q).index)  # map to integer index
+    return active
 
 def normalize_qasm(qasm_str: str) -> str:
     """
@@ -151,52 +180,62 @@ def normalize_qasm(qasm_str: str) -> str:
     decoded = qasm_str.encode("utf-8").decode("unicode_escape")
     return decoded.replace("\n", " ").strip()
 
+def qubit_mismatch_penalty(llm_circ, gt_circ) -> float:
+    """Compute a negative penalty if qubit counts differ, harsher if extra qubits are active."""
+    n1 = llm_circ.num_qubits
+    n2 = gt_circ.num_qubits
+    if n1 == n2:
+        return 0.0
 
-def _probabilities_full(circuit) -> np.ndarray:
+    # Identify which circuit is larger and count "active" extra qubits
+    if n1 > n2:
+        larger, smaller_n = llm_circ, n2
+    else:
+        larger, smaller_n = gt_circ, n1
+
+    active = _active_qubits(larger)
+    extra_active = sum(1 for i in range(smaller_n, larger.num_qubits) if i in active)
+    delta = abs(n1 - n2)
+
+    penalty = BASE_MISMATCH_PENALTY + PER_EXTRA_QUBIT_PENALTY * delta + PER_ACTIVE_EXTRA_BONUS * extra_active
+    # Clip so the penalty doesn't dominate beyond reason
+    return max(-1.0, penalty)
+
+
+def _probabilities(circuit, qargs=None) -> np.ndarray:
     """
-    Return full length-2**n computational-basis probabilities from exact statevector.
-    Ensures final measurements are removed before simulation.
+    Return computational-basis probabilities, optionally marginalized to qargs.
+    Uses exact statevector simulation.
     """
-    circ = circuit.copy()
-    # remove_final_measurements handles both "measure" and classical bits
-    circ.remove_final_measurements()
-    n = circ.num_qubits
+    c = _clean_circuit(circuit)
+    n = c.num_qubits
     if MAX_SAFE_QUBITS is not None and n > MAX_SAFE_QUBITS:
         raise MemoryError(
-            f"Circuit has {n} qubits; exceeds MAX_SAFE_QUBITS={MAX_SAFE_QUBITS} for exact simulation."
+            f"Circuit has {n} qubits; exceeds MAX_SAFE_QUBITS={MAX_SAFE_QUBITS}."
         )
-    sv = Statevector.from_instruction(circ)
-    # Qiskit guarantees computational basis order for probabilities()
-    probs = sv.probabilities()  # np.ndarray, shape (2**n,)
-    # Numerical cleanup: due to floating error, values might be ~-1e-16; clip and renormalize
+    sv = Statevector.from_instruction(c)
+    probs = sv.probabilities(qargs=qargs)  # marginal if qargs is not None
+    probs = np.asarray(probs, dtype=float)
     probs = np.clip(probs, 0.0, 1.0)
     s = probs.sum()
     if not np.isfinite(s) or s <= 0:
-        raise ValueError(
-            "Invalid probability vector (sum is non-positive or non-finite).")
+        raise ValueError("Invalid probability vector.")
     return probs / s
 
 
 def _kl(a: np.ndarray, b: np.ndarray) -> float:
-    """
-    KL(a||b) with ε-smoothing and safe renormalization. Natural log base.
-    """
-    a = np.asarray(a, dtype=float)
-    b = np.asarray(b, dtype=float)
-    a = a + EPS
-    b = b + EPS
+    a = np.asarray(a, dtype=float) + EPS
+    b = np.asarray(b, dtype=float) + EPS
     a = a / a.sum()
     b = b / b.sum()
     return float(np.sum(a * (np.log(a) - np.log(b))))
 
 
 def js_distance(p: np.ndarray, q: np.ndarray) -> float:
-    """
-    Jensen-Shannon distance in [0,1]. Uses natural logs internally, scales by log(2).
-    """
+    if p.shape != q.shape:
+        raise ValueError(f"Cannot compute JS distance for different shapes: {p.shape} vs {q.shape}")
     m = 0.5 * (p + q)
     js_div = 0.5 * _kl(p, m) + 0.5 * _kl(q, m)
-    # Convert JS divergence to distance and normalize to [0,1]
     return float(np.sqrt(js_div / np.log(2.0)))
 
 # --------------------------- Rewards ----------------------------
@@ -215,33 +254,58 @@ def syntax_reward(qasm_str: str) -> float:
 
 def dist_reward_exact(llm_qasm: str, gt_qasm: str) -> float:
     """
-    1 - JS_distance between exact probability vectors of the two circuits.
-    Returns value in [0,1], where 1 means identical output distributions.
+    1 - JS distance between probability vectors.
+    If qubit counts differ, compute on the first k=min(n1,n2) qubits to avoid shape errors.
+    NOTE: The *penalty* for mismatch is handled elsewhere; this function just returns similarity.
     """
-    llm_circ = parse(llm_qasm)
-    gt_circ = parse(gt_qasm)
-    p = _probabilities_full(llm_circ)
-    q = _probabilities_full(gt_circ)
-    d = js_distance(p, q)     # 0 (same) → 1 (very different)
+    llm_circ = _clean_circuit(parse(llm_qasm))
+    gt_circ  = _clean_circuit(parse(gt_qasm))
+
+    n1, n2 = llm_circ.num_qubits, gt_circ.num_qubits
+    if min(n1, n2) == 0:
+        return 0.0  # degenerate; treat as maximally dissimilar
+
+    if n1 == n2:
+        p = _probabilities(llm_circ)
+        q = _probabilities(gt_circ)
+    else:
+        k = min(n1, n2)
+        keep = list(range(k))
+        p = _probabilities(llm_circ, qargs=keep)
+        q = _probabilities(gt_circ,  qargs=keep)
+
+    m = 0.5 * (p + q)
+    # KL helpers with smoothing
+    a = (p + EPS) / (p + EPS).sum()
+    b = (q + EPS) / (q + EPS).sum()
+    m = (m + EPS) / (m + EPS).sum()
+    js_div = 0.5 * np.sum(a * (np.log(a) - np.log(m))) + 0.5 * np.sum(b * (np.log(b) - np.log(m)))
+    d = float(np.sqrt(js_div / np.log(2.0)))
     return 1.0 - d
 
 
-def expectation_value_reward(llm_circuit: str, cost_hamiltonian: str, smallest_eigenvalue: float, largest_eigenvalue: float) -> float:
-    """
-    A reward function that computes the expectation value of the circuit.
-    """
+
+
+def expectation_value_reward(llm_circuit: str, cost_hamiltonian: str,
+                             smallest_eigenvalue: float, largest_eigenvalue: float) -> float:
     llm_circuit = parse(llm_circuit)
-    llm_circuit.remove_final_measurements()
+    llm_circuit = _clean_circuit(llm_circuit)
+
     statevector = Statevector.from_instruction(llm_circuit)
     cost_hamiltonian = construct_qiskit_hamiltonian(cost_hamiltonian)
-    expectation_value = statevector.expectation_value(cost_hamiltonian).real
+    ev = statevector.expectation_value(cost_hamiltonian).real
 
-    # Normalize the expectation value
-    print(
-        f"Expectation Value: {expectation_value}, Smallest Eigenvalue: {smallest_eigenvalue}, Largest Eigenvalue: {largest_eigenvalue}")
-    min_max_normalized_value = (
-        expectation_value - smallest_eigenvalue) / (largest_eigenvalue - smallest_eigenvalue)
-    return 1 - min_max_normalized_value
+    denom = (largest_eigenvalue - smallest_eigenvalue)
+    if abs(denom) < 1e-12:
+        # Avoid division by ~0; fallback to a squashed transform in [-1,1] → [0,1]
+        # assuming eigenvalues are effectively constant.
+        min_max_normalized_value = 0.5 * (np.tanh(ev) + 1.0)
+    else:
+        min_max_normalized_value = (ev - smallest_eigenvalue) / denom
+
+    print(f"Expectation Value: {ev}, Smallest Eigenvalue: {smallest_eigenvalue}, Largest Eigenvalue: {largest_eigenvalue}")
+    return 1.0 - float(min_max_normalized_value)
+
 
 
 def optimization_reward_qiskit(qiskit_qc: str, H: str, smallest_eigenvalue: float, largest_eigenvalue: float) -> float:
@@ -327,32 +391,48 @@ def optimization_reward_qiskit(qiskit_qc: str, H: str, smallest_eigenvalue: floa
     return 0.8*train_reward + 0.2*cost_reward
 
 
-def reward_calculator(circuit_string: str, ground_truth: str, cost_hamiltonian: str, smallest_eigenvalue: float, largest_eigenvalue: float) -> float:
-    """
-    Final reward:
-      - early exit on syntax failure,
-      - otherwise syntax bonus + distribution similarity + expectation_value + optimization_value.
-    """
+def reward_calculator(circuit_string: str, ground_truth: str,
+                      cost_hamiltonian: str, smallest_eigenvalue: float, largest_eigenvalue: float) -> float:
+    # Syntax
     s = syntax_reward(circuit_string)
     if s < 0:
         return s
-    # Distribution reward
-    dist_reward = dist_reward_exact(circuit_string, ground_truth)
 
-    if dist_reward > OPTIMIZATION_THRESHOLD:
+    # Pre-parse and clean once for penalty computation
+    llm_circ = _clean_circuit(parse(circuit_string))
+    gt_circ  = _clean_circuit(parse(ground_truth))
+
+    # Mismatch penalty (0 if same size)
+    mismatch = qubit_mismatch_penalty(llm_circ, gt_circ)
+
+    # Distribution similarity (shape-safe)
+    dist_sim = dist_reward_exact(circuit_string, ground_truth)
+
+    # If there is a mismatch, downweight the impact of dist_sim (it’s computed on marginals)
+    if mismatch != 0.0:
+        dist_weight = 0.5
+    else:
+        dist_weight = 1
+
+    # Decide whether to include expectation/optimization branches
+    # If mismatched, be conservative: allow expectation, but only allow optimization if really strong
+    if dist_sim > OPTIMIZATION_THRESHOLD and mismatch == 0.0:
         optimization_value = optimization_reward_qiskit(
             circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
-        return s + 0.6*dist_reward + 0.4*optimization_value
-    if dist_reward < EXPECTED_THRESHOLD:
+        return s + mismatch + dist_weight * 0.6 * dist_sim + 0.4 * optimization_value
+
+    if dist_sim < EXPECTED_THRESHOLD:
         expectation_value = expectation_value_reward(
             circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
-        if expectation_value > OPTIMIZATION_THRESHOLD:
+        if expectation_value > OPTIMIZATION_THRESHOLD and mismatch == 0.0:
             optimization_value = optimization_reward_qiskit(
                 circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
-            return s + 0.3*dist_reward + 0.3*expectation_value + 0.4*optimization_value
+            return s + mismatch + 0.30 * dist_weight*dist_sim + 0.30 * expectation_value + 0.40 * optimization_value
         else:
-            return s + 0.3*dist_reward + 0.3*expectation_value
-    return s + dist_reward
+            return s + mismatch + 0.30 * dist_weight*dist_sim + 0.30 * expectation_value
+
+    return s + mismatch + dist_weight * dist_sim
+
 
 # --------------------------- CLI ----------------------------
 
