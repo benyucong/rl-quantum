@@ -38,7 +38,7 @@ SYNTAX_BAD_PENALTY = -1
 EPS = 1e-12             # smoothing for KL/JS
 EXPECTED_THRESHOLD = 0.1  # if dist_reward below this, give expectation_value_reward
 # if dist_reward greater this, give optimization_value_reward
-OPTIMIZATION_THRESHOLD = 0.6
+OPTIMIZATION_THRESHOLD = 0.9
 # guardrail (exact sim is exponential). Set None to disable.
 MAX_SAFE_QUBITS = None
 
@@ -303,7 +303,7 @@ def expectation_value_reward(llm_circuit: str, cost_hamiltonian: str,
     else:
         min_max_normalized_value = (ev - smallest_eigenvalue) / denom
 
-    print(f"Expectation Value: {ev}, Smallest Eigenvalue: {smallest_eigenvalue}, Largest Eigenvalue: {largest_eigenvalue}")
+    # print(f"Expectation Value: {ev}, Smallest Eigenvalue: {smallest_eigenvalue}, Largest Eigenvalue: {largest_eigenvalue}")
     return 1.0 - float(min_max_normalized_value)
 
 
@@ -314,6 +314,7 @@ def optimization_reward_qiskit(qiskit_qc: str, H: str, smallest_eigenvalue: floa
 
     Final reward depends on the optimization steps and the fact how close to the ground truth the optimization managed to take the circuit.
     """
+    # return 1.0
     qiskit_qc = parse(qiskit_qc)
     qiskit_hamiltonian = construct_qiskit_hamiltonian(H)
     qiskit_symbolic_param_qc, param_map = parametrize_qiskit_circuit(qiskit_qc)
@@ -338,7 +339,7 @@ def optimization_reward_qiskit(qiskit_qc: str, H: str, smallest_eigenvalue: floa
         return expectation_value
 
     # Stopping criteria parameters
-    max_iterations = 100
+    max_iterations = 80
     tolerance = 1e-6
 
     # Track optimization progress
@@ -351,15 +352,14 @@ def optimization_reward_qiskit(qiskit_qc: str, H: str, smallest_eigenvalue: floa
         current_cost = cost_function(x)
         cost_history.append(current_cost)
 
-        if iteration_count % 10 == 0:
-            print(f'Step {iteration_count}, Cost: {current_cost:.6f}')
+        # if iteration_count % 10 == 0:
+            # print(f'Step {iteration_count}, Cost: {current_cost:.6f}')
 
         # Check for convergence
         if len(cost_history) > 1:
             cost_change = abs(cost_history[-1] - cost_history[-2])
             if cost_change < tolerance:
-                print(
-                    f'Converged at step {iteration_count}: cost change {cost_change:.8f} < tolerance {tolerance}')
+                # print(f'Converged at step {iteration_count}: cost change {cost_change:.8f} < tolerance {tolerance}')
                 return True  # Stop optimization
 
         if iteration_count >= max_iterations:
@@ -401,12 +401,16 @@ def reward_calculator(circuit_string: str, ground_truth: str,
     # Pre-parse and clean once for penalty computation
     llm_circ = _clean_circuit(parse(circuit_string))
     gt_circ  = _clean_circuit(parse(ground_truth))
-
+    # print(f"calculating reward of circuit_string: {circuit_string}...")
     # Mismatch penalty (0 if same size)
+    # print("start mismatch cal")
     mismatch = qubit_mismatch_penalty(llm_circ, gt_circ)
+    # print("end mismatch cal")
 
     # Distribution similarity (shape-safe)
+    # print("start dis cal")
     dist_sim = dist_reward_exact(circuit_string, ground_truth)
+    # print("end dis cal")
 
     # If there is a mismatch, downweight the impact of dist_sim (it’s computed on marginals)
     if mismatch != 0.0:
@@ -422,8 +426,10 @@ def reward_calculator(circuit_string: str, ground_truth: str,
         return s + mismatch + dist_weight * 0.6 * dist_sim + 0.4 * optimization_value
 
     if dist_sim < EXPECTED_THRESHOLD:
+        # print("start exp cal")
         expectation_value = expectation_value_reward(
             circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
+        # print("end exp cal")
         if expectation_value > OPTIMIZATION_THRESHOLD and mismatch == 0.0:
             optimization_value = optimization_reward_qiskit(
                 circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
