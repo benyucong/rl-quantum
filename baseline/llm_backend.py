@@ -36,11 +36,18 @@ def update_base_url(request: httpx.Request) -> None:
 
 def call_gpt_self_debug(message, model: str = "gpt-5", temperature: float = 0.0):
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    response = client.chat.completions.create(
-        model=model,
-        messages=message,
-        temperature=temperature
-    )
+    if model == "gpt-5" or model == "gpt-5-mini":
+        response = client.chat.completions.create(
+            model=model,
+            messages=message,
+            temperature=1.0
+        )
+    else:
+        response = client.chat.completions.create(
+            model=model,
+            messages=message,
+            temperature=temperature
+        )
     return response.choices[0].message.content
 
 
@@ -75,13 +82,21 @@ def call_gpt(prompt: str, model: str = "gpt-5", temperature: float = 0.0):
         ),
     )
     
-    print("Calling GPT model...")
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt}],
-        temperature=temperature
-    )
+    print("Calling GPT model...", model)
+    if model == "gpt-5" or model == "gpt-5-mini":
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt}],
+            temperature=1.0
+        )
+    else:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt}],
+            temperature=temperature
+        )
     return response.choices[0].message.content
 
 
