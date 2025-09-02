@@ -1,0 +1,38 @@
+OPENQASM 3.0;
+include "stdgates.inc";
+bit[5] c;
+qubit[5] q;
+
+// Initialize the qubits in superposition
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+h q[4];
+
+// First layer of gates based on the graph topology: edges
+cx q[0], q[1]; // edge (0, 1)
+cx q[0], q[2]; // edge (0, 2)
+cx q[0], q[4]; // edge (0, 5)
+cx q[1], q[2]; // edge (1, 2)
+cx q[1], q[3]; // edge (1, 4)
+cx q[2], q[3]; // edge (2, 4)
+
+// Apply rotation angles (these can be tuned optimally)
+rz(0.78) q[0];
+rz(0.45) q[1];
+rz(0.56) q[2];
+rz(0.34) q[3];
+rz(0.22) q[4];
+
+// Second layer of gates to create entanglement
+cx q[0], q[2];
+cx q[1], q[4];
+cx q[3], q[2];
+
+// Measurement
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];
+c[4] = measure q[4];

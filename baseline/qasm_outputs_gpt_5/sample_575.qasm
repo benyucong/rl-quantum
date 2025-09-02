@@ -1,0 +1,43 @@
+OPENQASM 3.0;
+include "stdgates.inc";
+bit[10] c;
+qubit[10] q;
+
+// Layer 1
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+h q[4];
+cx q[0], q[3]; // from source 0 to intermediate 3
+cx q[0], q[4]; // from source 0 to sink 4
+cx q[1], q[2]; // from node 1 to node 2
+cx q[1], q[3]; // from node 1 to intermediate 3
+cx q[2], q[1]; // feedback from node 2 to node 1
+cx q[2], q[4]; // from node 2 to sink 4
+cx q[3], q[1]; // from intermediate 3 to node 1
+
+// Layer 2
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+h q[4];
+rz(-0.7854) q[0]; // rotation for optimization
+rz(0.7854) q[1]; 
+rz(-0.5236) q[2];
+rz(0.5236) q[3];
+rz(-0.7854) q[4];
+cx q[0], q[3];
+cx q[0], q[4];
+cx q[1], q[2];
+cx q[1], q[3];
+cx q[2], q[4];
+cx q[3], q[1];
+
+// Measurement
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];
+c[4] = measure q[4];
