@@ -34,7 +34,7 @@ from scipy.optimize import minimize
 # --------------------------- Tunables ---------------------------
 
 SYNTAX_OK_BONUS = 0.2   # small positive shaping for valid QASM
-SYNTAX_BAD_PENALTY = -1
+SYNTAX_BAD_PENALTY = -0.5
 EPS = 1e-12             # smoothing for KL/JS
 EXPECTED_THRESHOLD = 0.1  # if dist_reward below this, give expectation_value_reward
 # if dist_reward greater this, give optimization_value_reward
@@ -43,9 +43,9 @@ OPTIMIZATION_THRESHOLD = 0.9
 MAX_SAFE_QUBITS = None
 
 # Tunables for mismatch severity
-BASE_MISMATCH_PENALTY = -0.35       # applied if n_llm != n_gt
-PER_EXTRA_QUBIT_PENALTY = -0.08     # per qubit count difference
-PER_ACTIVE_EXTRA_BONUS  = -0.12     # extra hit for each ACTIVE extra qubit
+BASE_MISMATCH_PENALTY = -0.2       # applied if n_llm != n_gt
+PER_EXTRA_QUBIT_PENALTY = -0.05     # per qubit count difference
+PER_ACTIVE_EXTRA_BONUS  = -0.1     # extra hit for each ACTIVE extra qubit
 
 # --------------------------- Utilities ----------------------------
 
@@ -243,7 +243,7 @@ def js_distance(p: np.ndarray, q: np.ndarray) -> float:
 
 def syntax_reward(qasm_str: str) -> float:
     """
-    Light shaping: +0.2 if parseable, -1.0 otherwise.
+    Small positive reward if QASM is syntactically valid, negative penalty otherwise.
     """
     try:
         parse(qasm_str)
@@ -420,24 +420,24 @@ def reward_calculator(circuit_string: str, ground_truth: str,
 
     # Decide whether to include expectation/optimization branches
     # If mismatched, be conservative: allow expectation, but only allow optimization if really strong
-    if dist_sim > OPTIMIZATION_THRESHOLD and mismatch == 0.0:
+    if dist_sim > OPTIMIZATION_THRESHOLD:
         optimization_value = optimization_reward_qiskit(
             circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
-        return s + mismatch + dist_weight * 0.6 * dist_sim + 0.4 * optimization_value
+        return mismatch + 0.6 * dist_weight * dist_sim + 0.4 * optimization_value
 
     if dist_sim < EXPECTED_THRESHOLD:
         # print("start exp cal")
         expectation_value = expectation_value_reward(
             circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
         # print("end exp cal")
-        if expectation_value > OPTIMIZATION_THRESHOLD and mismatch == 0.0:
+        if expectation_value > OPTIMIZATION_THRESHOLD:
             optimization_value = optimization_reward_qiskit(
                 circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
-            return s + mismatch + 0.30 * dist_weight*dist_sim + 0.30 * expectation_value + 0.40 * optimization_value
+            return mismatch + 0.30 * dist_weight * dist_sim + 0.30 * expectation_value + 0.40 * optimization_value
         else:
-            return s + mismatch + 0.30 * dist_weight*dist_sim + 0.30 * expectation_value
+            return mismatch + 0.30 * dist_weight * dist_sim + 0.30 * expectation_value
 
-    return s + mismatch + dist_weight * dist_sim
+    return mismatch + dist_weight * dist_sim
 
 
 # --------------------------- CLI ----------------------------
