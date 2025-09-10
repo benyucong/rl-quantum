@@ -34,7 +34,7 @@ def update_base_url(request: httpx.Request) -> None:
     else:
         request.url.path = f"{aalto_openai_endpoint_url}"
 
-def call_gpt(prompt: str, model: str = "gpt-5", temperature: float = 0.0):
+def call_gpt(prompt: str, model: str, temperature: float = 0.0):
     client = OpenAI(
         base_url="https://aalto-openai-apigw.azure-api.net",
         api_key=False, # API key not used, and rather set below
