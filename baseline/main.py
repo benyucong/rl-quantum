@@ -1,4 +1,4 @@
-from llm_backend import call_llm, call_llm_self_debug
+from llm_backend import call_llm
 import argparse
 from datasets import load_dataset
 from utils import load_prompt, extract_qasm_block, save_qasm_code
