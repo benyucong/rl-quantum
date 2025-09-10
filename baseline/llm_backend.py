@@ -81,7 +81,7 @@ def call_deepseek(prompt: str):
 
 def call_llm(prompt: str, model: str) -> str:
     if model == "gpt-5" or model == "gpt-5-mini" or model == "gpt-4o":
-        response = call_gpt(prompt)
+        response = call_gpt(prompt, model)
     elif model == "deepseek":
         response = call_deepseek(prompt)
         
