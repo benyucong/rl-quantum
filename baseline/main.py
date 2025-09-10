@@ -1,7 +1,7 @@
 from llm_backend import call_llm, call_llm_self_debug
 import argparse
 from datasets import load_dataset
-from utils import load_prompt, extract_qasm_block, save_qasm_code, load_self_debug_prompt
+from utils import load_prompt, extract_qasm_block, save_qasm_code
 import time
 import json
 import os
@@ -14,38 +14,52 @@ def main():
     parser.add_argument(
         "--dataset", type=str, required=True, help="Dataset to use for generation"
     )
-
-    parser.add_argument("--self_debug", action="store_true", help="Enable self-debugging")
+    parser.add_argument(
+        "--model", type=str, required=True, help="Model to use for generation"
+    )
+    parser.add_argument(
+        "--num_generations", type=int, default=1, help="Number of generations per sample"
+    )
 
     args = parser.parse_args()
     
     dataset = load_dataset(args.dataset, split="test")
     dataset_size = len(dataset)
     
-    
     results = []
+
+    # Create a folder name based on model + gens
+    qasm_folder = f"qasm_outputs_{args.model}_gens{args.num_generations}"
     
     for idx, sample in enumerate(dataset):
         
         print(f"\n--- Processing Sample {idx} ---")
         prompt = load_prompt(sample)
-        start_time = time.time()
-        response = call_llm(prompt, model="gpt")
-        generation_time = time.time() - start_time
-        print("LLM Response:\n", response)
 
-        qasm_code = ""
+        generation_results = {}
+        total_time = 0.0
 
-        
-        try:
-            qasm_code = extract_qasm_block(response)
-            save_qasm_code(qasm_code, f"sample_{idx}.qasm")
-        except ValueError as e:
-            print(f"Warning: Sample {idx} skipped – {e}")
+        for gen_idx in range(args.num_generations):
+            print(f"  -> Generation {gen_idx+1}/{args.num_generations}")
+            start_time = time.time()
+            response = call_llm(prompt, model=args.model)
+            generation_time = time.time() - start_time
+            total_time += generation_time
+
+            print("LLM Response:\n", response)
+
+            qasm_code = ""
+            try:
+                qasm_code = extract_qasm_block(response)
+                save_qasm_code(qasm_code, f"sample_{idx}_gen{gen_idx+1}.qasm", folder=qasm_folder)
+            except ValueError as e:
+                print(f"Warning: Sample {idx}, Generation {gen_idx+1} skipped - {e}")
+
+            generation_results[f"generated_circuit_{gen_idx+1}"] = qasm_code
         
         sample_result = {
             "signature": sample.get("signature"),
-            "model_name": "deepseek",
+            "model_name": args.model,
             "sample_index": idx,
             "dataset_metrics": {
                 "n_qubits": sample.get("number_of_qubits"),
@@ -61,40 +75,14 @@ def main():
                 "solution": sample.get("solution"),
                 "exact_solution": sample.get("exact_solution"),
             },
-            "generated_circuit": qasm_code,
-            "generation_time_seconds": generation_time,
+            **generation_results,
+            "avg_generation_time_seconds": total_time / args.num_generations,
         }
 
-
-        # if args.self_debug:
-        #     print("SELF_DEBUGGING.....")
-        #     debug_temp_file = "temp_debug_results.json"
-        #     with open(debug_temp_file, "w") as f:
-        #         json.dump([sample_result], f, indent=2)
-
-        #     error_message = process_circuits_debug(debug_temp_file)
-
-        #     if len(error_message) > 0:
-        #         self_debug_prompt = load_self_debug_prompt(prompt, response , error_message)
-        #         print("Self-debugging prompt:\n", self_debug_prompt)
-        #         self_debug_response = call_llm_self_debug(self_debug_prompt)
-
-        #         try:
-        #             self_debug_qasm_code = ""
-        #             self_debug_qasm_code = extract_qasm_block(self_debug_response)
-        #             save_qasm_code(self_debug_qasm_code, f"sample_{idx}.qasm")
-        #         except ValueError as e:
-        #             print(f"Warning: Sample {idx} skipped – {e}")
-                   
-        #         sample_result["generated_circuit"] = self_debug_qasm_code
-
-        #         os.remove(debug_temp_file)
-        #         print(f"Cleaned up temp file: {debug_temp_file}")
-
         results.append(sample_result)
-        print(f"Processed sample {idx} (generation took {generation_time:.2f} seconds)")
+        print(f"Processed sample {idx} ({args.num_generations} generations, avg {total_time/args.num_generations:.2f}s)")
     
-    output_file_name = f"results_gpt-4o.json"
+    output_file_name = f"results_{args.model}_gens{args.num_generations}.json"
     
     with open(output_file_name, "w") as f:
         json.dump(results, f, indent=2)
