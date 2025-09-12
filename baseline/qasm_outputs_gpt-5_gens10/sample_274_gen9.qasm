@@ -1,0 +1,78 @@
+OPENQASM 3.0;
+include "stdgates.inc";
+bit[16] c;
+qubit[16] q;
+
+// Initialization Layer
+h q[0]; // Source
+h q[1]; // Intermediate Node 1
+h q[2]; // Intermediate Node 2
+h q[3]; // Intermediate Node 3
+h q[4]; // Intermediate Node 4
+h q[5]; // Intermediate Node 5
+h q[6]; // Sink
+
+// Entangling Layer
+cx q[0], q[1]; // 0 -> 1
+rz(-0.25) q[1]; // Capacity 2
+cx q[1], q[6]; // 1 -> 6
+rz(-0.25) q[6];
+
+cx q[2], q[3]; // 2 -> 3
+rz(-0.25) q[3]; // Capacity 4
+
+cx q[4], q[1]; // 4 -> 1
+rz(-0.25) q[1]; // Capacity 4
+
+cx q[4], q[2]; // 4 -> 2
+rz(-0.25) q[2]; // Capacity 4
+
+cx q[5], q[3]; // 5 -> 3
+rz(-0.25) q[3]; // Capacity 4
+
+// Final Layer
+h q[0];
+rz(0.5) q[0];
+h q[0];
+
+h q[1];
+rz(0.5) q[1];
+h q[1];
+
+h q[2];
+rz(0.5) q[2];
+h q[2];
+
+h q[3];
+rz(0.5) q[3];
+h q[3];
+
+h q[4];
+rz(0.5) q[4];
+h q[4];
+
+h q[5];
+rz(0.5) q[5];
+h q[5];
+
+h q[6];
+rz(0.5) q[6];
+h q[6];
+
+// Measurement
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];
+c[4] = measure q[4];
+c[5] = measure q[5];
+c[6] = measure q[6];
+c[7] = measure q[7];
+c[8] = measure q[8];
+c[9] = measure q[9];
+c[10] = measure q[10];
+c[11] = measure q[11];
+c[12] = measure q[12];
+c[13] = measure q[13];
+c[14] = measure q[14];
+c[15] = measure q[15];

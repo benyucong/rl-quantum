@@ -1,0 +1,39 @@
+OPENQASM 3.0;
+include "stdgates.inc";
+bit[4] c;
+qubit[4] q;
+
+// Layer 1
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+
+// Layer 2
+cx q[0], q[2]; // Encoding source to edge 
+rz(-0.6440) q[2]; // Capacity adjustment
+cx q[0], q[2]; 
+
+cx q[0], q[3]; // Encoding source to sink
+rz(-0.3934) q[3]; // Capacity adjustment
+cx q[0], q[3]; 
+
+cx q[1], q[2]; // Encoding a path to the sink
+rz(-0.5100) q[2]; // Capacity adjustment
+cx q[1], q[2]; 
+
+cx q[1], q[3]; // Additional connection
+rz(-0.6283) q[3]; // Capacity adjustment
+cx q[1], q[3]; 
+
+// Layer 3
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+
+// Measurement
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];

@@ -1,0 +1,54 @@
+OPENQASM 3.0;
+include "stdgates.inc";
+bit[8] c;
+qubit[8] q;
+
+// Layer 1
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+h q[4];
+h q[5];
+h q[6];
+h q[7];
+
+// Layer 2 - Encoding edges with CX and RZ gates optimally
+cx q[0], q[6]; // edge 0 -> 6
+rz(0.5236) q[6]; // adjust phase based on capacity
+cx q[1], q[3]; // edge 1 -> 3
+rz(0.5236) q[3]; // adjust phase based on capacity
+cx q[1], q[4]; // edge 1 -> 4
+rz(0.5236) q[4]; // adjust phase based on capacity
+cx q[1], q[7]; // edge 1 -> 7
+rz(0.5236) q[7]; // adjust phase based on capacity
+cx q[2], q[1]; // edge 2 -> 1
+rz(0.5236) q[1]; // adjust phase based on capacity
+cx q[2], q[5]; // edge 2 -> 5
+rz(0.5236) q[5]; // adjust phase based on capacity
+cx q[2], q[7]; // edge 2 -> 7
+rz(0.5236) q[7]; // adjust phase based on capacity
+cx q[3], q[4]; // edge 3 -> 4
+rz(0.5236) q[4]; // adjust phase based on capacity
+cx q[4], q[1]; // edge 4 -> 1
+rz(0.5236) q[1]; // adjust phase based on capacity
+cx q[4], q[2]; // edge 4 -> 2
+rz(0.5236) q[2]; // adjust phase based on capacity
+cx q[4], q[7]; // edge 4 -> 7
+rz(0.5236) q[7]; // adjust phase based on capacity
+cx q[5], q[4]; // edge 5 -> 4
+rz(0.5236) q[4]; // adjust phase based on capacity
+cx q[5], q[6]; // edge 5 -> 6
+rz(0.5236) q[6]; // adjust phase based on capacity
+cx q[6], q[4]; // edge 6 -> 4
+rz(0.5236) q[4]; // adjust phase based on capacity
+
+// Measurement
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];
+c[4] = measure q[4];
+c[5] = measure q[5];
+c[6] = measure q[6];
+c[7] = measure q[7];

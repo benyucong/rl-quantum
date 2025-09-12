@@ -1,0 +1,116 @@
+OPENQASM 3.0;
+include "stdgates.inc";
+bit[11] c;
+qubit[11] q;
+
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+h q[4];
+h q[5];
+h q[6];
+h q[7];
+h q[8];
+h q[9];
+h q[10];
+
+cx q[0], q[1];
+rx(0.6751) q[1];
+cx q[0], q[1];
+
+cx q[0], q[3];
+rx(0.3452) q[3];
+cx q[0], q[3];
+
+cx q[0], q[5];
+rx(0.4626) q[5];
+cx q[0], q[5];
+
+cx q[2], q[7];
+rx(0.5551) q[7];
+cx q[2], q[7];
+
+cx q[2], q[8];
+rx(0.3245) q[8];
+cx q[2], q[8];
+
+cx q[2], q[10];
+rx(0.2924) q[10];
+cx q[2], q[10];
+
+cx q[3], q[1];
+rx(0.6783) q[1];
+cx q[3], q[1];
+
+cx q[3], q[6];
+rx(0.2901) q[6];
+cx q[3], q[6];
+
+cx q[3], q[9];
+rx(0.1945) q[9];
+cx q[3], q[9];
+
+cx q[4], q[2];
+rx(0.5342) q[2];
+cx q[4], q[2];
+
+cx q[4], q[6];
+rx(0.0935) q[6];
+cx q[4], q[6];
+
+cx q[5], q[2];
+rx(0.1237) q[5];
+cx q[5], q[2];
+
+cx q[5], q[7];
+rx(0.4376) q[7];
+cx q[5], q[7];
+
+cx q[5], q[10];
+rx(0.2491) q[10];
+cx q[5], q[10];
+
+cx q[6], q[4];
+rx(0.3215) q[4];
+cx q[6], q[4];
+
+cx q[7], q[1];
+rx(0.2123) q[1];
+cx q[7], q[1];
+
+cx q[7], q[6];
+rx(0.1289) q[6];
+cx q[7], q[6];
+
+cx q[7], q[10];
+rx(0.1341) q[10];
+cx q[7], q[10];
+
+cx q[8], q[1];
+rx(0.7511) q[1];
+cx q[8], q[1];
+
+cx q[8], q[2];
+rx(0.0912) q[2];
+cx q[8], q[2];
+
+cx q[8], q[5];
+rx(0.0563) q[5];
+cx q[8], q[5];
+
+cx q[9], q[5];
+rx(0.2984) q[5];
+cx q[9], q[5];
+
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];
+c[4] = measure q[4];
+c[5] = measure q[5];
+c[6] = measure q[6];
+c[7] = measure q[7];
+c[8] = measure q[8];
+c[9] = measure q[9];
+c[10] = measure q[10];

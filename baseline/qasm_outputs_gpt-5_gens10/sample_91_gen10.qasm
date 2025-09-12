@@ -1,0 +1,120 @@
+OPENQASM 3.0;
+include "stdgates.inc";
+bit[11] c;
+qubit[11] q;
+
+// Layer 1: Initialization
+h q[0]; // Source node
+h q[1]; // Auxiliary
+h q[2]; // Auxiliary
+h q[3]; // Auxiliary
+h q[4]; // Auxiliary
+h q[5]; // Auxiliary
+h q[6]; // Auxiliary
+h q[7]; // Auxiliary
+h q[8]; // Auxiliary
+h q[9]; // Auxiliary
+h q[10]; // Sink node
+
+// Layer 2: Entangling operations based on edges
+cx q[0], q[2]; // Edge (0, 2)
+rz(0.7854) q[2]; // Capacity influence
+cx q[0], q[2];
+
+cx q[0], q[4]; // Edge (0, 4)
+rz(0.5236) q[4]; // Capacity influence
+cx q[0], q[4];
+
+cx q[0], q[8]; // Edge (0, 8)
+rz(0.7854) q[8]; // Capacity influence
+cx q[0], q[8];
+
+cx q[1], q[2]; // Edge (1, 2)
+rz(0.2618) q[2]; // Capacity influence
+cx q[1], q[2];
+
+cx q[1], q[5]; // Edge (1, 5)
+rz(0.5236) q[5]; // Capacity influence
+cx q[1], q[5];
+
+cx q[1], q[6]; // Edge (1, 6)
+rz(0.7854) q[6]; // Capacity influence
+cx q[1], q[6];
+
+cx q[2], q[7]; // Edge (2, 7)
+rz(0.5236) q[7]; // Capacity influence
+cx q[2], q[7];
+
+cx q[2], q[10]; // Edge (2, 10)
+rz(0.7854) q[10]; // Capacity influence
+cx q[2], q[10];
+
+cx q[3], q[8]; // Edge (3, 8)
+rz(0.2618) q[8]; // Capacity influence
+cx q[3], q[8];
+
+cx q[3], q[10]; // Edge (3, 10)
+rz(0.2618) q[10]; // Capacity influence
+cx q[3], q[10];
+
+cx q[4], q[5]; // Edge (4, 5)
+rz(0.5236) q[5]; // Capacity influence
+cx q[4], q[5];
+
+cx q[4], q[6]; // Edge (4, 6)
+rz(0.7854) q[6]; // Capacity influence
+cx q[4], q[6];
+
+cx q[4], q[8]; // Edge (4, 8)
+rz(0.2618) q[8]; // Capacity influence
+cx q[4], q[8];
+
+cx q[6], q[4]; // Edge (6, 4)
+rz(0.5236) q[4]; // Capacity influence
+cx q[6], q[4];
+
+cx q[7], q[1]; // Edge (7, 1)
+rz(0.5236) q[1]; // Capacity influence
+cx q[7], q[1];
+
+cx q[7], q[5]; // Edge (7, 5)
+rz(0.7854) q[5]; // Capacity influence
+cx q[7], q[5];
+
+cx q[8], q[5]; // Edge (8, 5)
+rz(0.5236) q[5]; // Capacity influence
+cx q[8], q[5];
+
+cx q[8], q[7]; // Edge (8, 7)
+rz(0.5236) q[7]; // Capacity influence
+cx q[8], q[7];
+
+cx q[9], q[4]; // Edge (9, 4)
+rz(0.2618) q[4]; // Capacity influence
+cx q[9], q[4];
+
+// Layer 3: Measurement preparation
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+h q[4];
+h q[5];
+h q[6];
+h q[7];
+h q[8];
+h q[9];
+h q[10];
+
+// Measurement
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];
+c[4] = measure q[4];
+c[5] = measure q[5];
+c[6] = measure q[6];
+c[7] = measure q[7];
+c[8] = measure q[8];
+c[9] = measure q[9];
+c[10] = measure q[10];

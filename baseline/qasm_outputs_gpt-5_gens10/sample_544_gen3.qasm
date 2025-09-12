@@ -1,0 +1,33 @@
+OPENQASM 3.0;
+include "stdgates.inc";
+bit[8] c;
+qubit[8] q;
+
+// Initialize qubits with an appropriate superposition state
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+
+// Encoding edges with controlled operations based on capacities
+// Source to Sink
+cx q[0], q[2]; // Capacity 5
+rz(0.4500) q[2];
+cx q[0], q[3]; // Capacity 1
+rz(0.0800) q[3];
+
+// Intermediate Nodes
+cx q[1], q[2]; // Capacity 1
+rz(0.1000) q[2];
+cx q[1], q[3]; // Capacity 6
+rz(0.6000) q[3];
+
+// Measure all qubits to extract flow values
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];
+c[4] = measure q[4];
+c[5] = measure q[5];
+c[6] = measure q[6];
+c[7] = measure q[7];
