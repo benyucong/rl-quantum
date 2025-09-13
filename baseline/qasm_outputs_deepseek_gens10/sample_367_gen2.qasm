@@ -1,0 +1,166 @@
+OPENQASM 3.0;
+include "stdgates.inc";
+bit[11] c;
+qubit[11] q;
+
+// Layer 1: Initial Hadamard and parameterized rotations
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+h q[4];
+h q[5];
+h q[6];
+h q[7];
+h q[8];
+h q[9];
+h q[10];
+
+// Parameterized rotations for min-cut optimization
+rz(0.2145) q[0];
+rz(0.3128) q[1];
+rz(0.1892) q[2];
+rz(0.2756) q[3];
+rz(0.1423) q[4];
+rz(0.3289) q[5];
+rz(0.2017) q[6];
+rz(0.2674) q[7];
+rz(0.1568) q[8];
+rz(0.2931) q[9];
+rz(0.1785) q[10];
+
+// Edge interactions based on graph connectivity
+// Layer 1: Edge operations
+cx q[0], q[1];
+rz(0.0832) q[1];
+cx q[0], q[1];
+cx q[0], q[3];
+rz(0.0832) q[3];
+cx q[0], q[3];
+cx q[0], q[5];
+rz(0.1109) q[5];
+cx q[0], q[5];
+cx q[0], q[9];
+rz(0.0277) q[9];
+cx q[0], q[9];
+cx q[2], q[7];
+rz(0.0554) q[7];
+cx q[2], q[7];
+cx q[2], q[8];
+rz(0.1109) q[8];
+cx q[2], q[8];
+cx q[2], q[10];
+rz(0.0554) q[10];
+cx q[2], q[10];
+cx q[3], q[1];
+rz(0.0832) q[1];
+cx q[3], q[1];
+cx q[3], q[6];
+rz(0.0832) q[6];
+cx q[3], q[6];
+cx q[3], q[9];
+rz(0.0832) q[9];
+cx q[3], q[9];
+cx q[4], q[2];
+rz(0.1109) q[2];
+cx q[4], q[2];
+cx q[4], q[6];
+rz(0.0277) q[6];
+cx q[4], q[6];
+cx q[4], q[10];
+rz(0.0277) q[10];
+cx q[4], q[10];
+cx q[5], q[2];
+rz(0.0832) q[2];
+cx q[5], q[2];
+cx q[5], q[7];
+rz(0.0554) q[7];
+cx q[5], q[7];
+cx q[5], q[9];
+rz(0.0277) q[9];
+cx q[5], q[9];
+cx q[5], q[10];
+rz(0.0277) q[10];
+cx q[5], q[10];
+cx q[6], q[4];
+rz(0.0832) q[4];
+cx q[6], q[4];
+cx q[6], q[7];
+rz(0.0277) q[7];
+cx q[6], q[7];
+cx q[7], q[1];
+rz(0.0832) q[1];
+cx q[7], q[1];
+cx q[7], q[6];
+rz(0.0554) q[6];
+cx q[7], q[6];
+cx q[7], q[9];
+rz(0.0554) q[9];
+cx q[7], q[9];
+cx q[7], q[10];
+rz(0.0554) q[10];
+cx q[7], q[10];
+cx q[8], q[1];
+rz(0.1109) q[1];
+cx q[8], q[1];
+cx q[8], q[2];
+rz(0.1109) q[2];
+cx q[8], q[2];
+cx q[8], q[5];
+rz(0.0554) q[5];
+cx q[8], q[5];
+cx q[9], q[5];
+rz(0.0832) q[5];
+cx q[9], q[5];
+
+// Layer 2: Additional parameterized rotations
+rz(0.1983) q[0];
+rz(0.2894) q[1];
+rz(0.1746) q[2];
+rz(0.2567) q[3];
+rz(0.1321) q[4];
+rz(0.3056) q[5];
+rz(0.1872) q[6];
+rz(0.2489) q[7];
+rz(0.1459) q[8];
+rz(0.2724) q[9];
+rz(0.1658) q[10];
+
+// Layer 3: Final mixing and measurement preparation
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+h q[4];
+h q[5];
+h q[6];
+h q[7];
+h q[8];
+h q[9];
+h q[10];
+
+// Final parameterized rotations
+rz(0.1821) q[0];
+rz(0.2662) q[1];
+rz(0.1601) q[2];
+rz(0.2378) q[3];
+rz(0.1219) q[4];
+rz(0.2823) q[5];
+rz(0.1727) q[6];
+rz(0.2304) q[7];
+rz(0.1351) q[8];
+rz(0.2517) q[9];
+rz(0.1532) q[10];
+
+// Measurement
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];
+c[4] = measure q[4];
+c[5] = measure q[5];
+c[6] = measure q[6];
+c[7] = measure q[7];
+c[8] = measure q[8];
+c[9] = measure q[9];
+c[10] = measure q[10];
