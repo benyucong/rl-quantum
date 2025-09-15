@@ -1,0 +1,12 @@
+\documentclass[border=2px]{standalone}
+
+\usepackage[braket, qm]{qcircuit}
+\usepackage{graphicx}
+
+\begin{document}
+\scalebox{1.0}{
+\Qcircuit @C=1.0em @R=0.2em @!R { \\
+	 	\nghost{{q}_{0} :  } & \lstick{{q}_{0} :  } & \gate{\mathrm{H}} & \targ & \gate{\mathrm{R_Z}\,(\mathrm{0.0516})} & \targ & \gate{\mathrm{R_Z}\,(\mathrm{-0.1032})} & \gate{\mathrm{H}} & \gate{\mathrm{R_Z}\,(\mathrm{-0.1082})} & \gate{\mathrm{H}} & \targ & \gate{\mathrm{R_Z}\,(\mathrm{0.0203})} & \targ & \gate{\mathrm{R_Z}\,(\mathrm{-0.0406})} & \gate{\mathrm{H}} & \gate{\mathrm{R_Z}\,(\mathrm{-0.0538})} & \gate{\mathrm{H}} & \qw & \qw\\
+	 	\nghost{{q}_{1} :  } & \lstick{{q}_{1} :  } & \gate{\mathrm{H}} & \ctrl{-1} & \qw & \ctrl{-1} & \gate{\mathrm{R_Z}\,(\mathrm{-0.1032})} & \gate{\mathrm{H}} & \gate{\mathrm{R_Z}\,(\mathrm{-0.1082})} & \gate{\mathrm{H}} & \ctrl{-1} & \qw & \ctrl{-1} & \gate{\mathrm{R_Z}\,(\mathrm{-0.0406})} & \gate{\mathrm{H}} & \gate{\mathrm{R_Z}\,(\mathrm{-0.0538})} & \gate{\mathrm{H}} & \qw & \qw\\
+\\ }}
+\end{document}

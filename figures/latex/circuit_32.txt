@@ -1,0 +1,15 @@
+\documentclass[border=2px]{standalone}
+
+\usepackage[braket, qm]{qcircuit}
+\usepackage{graphicx}
+
+\begin{document}
+\scalebox{1.0}{
+\Qcircuit @C=1.0em @R=0.2em @!R { \\
+	 	\nghost{{q}_{0} :  } & \lstick{{q}_{0} :  } & \gate{\mathrm{H}} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{1.571})} & \ctrl{2} & \qw & \ctrl{3} & \gate{\mathrm{R_Y}\,(\mathrm{-0.2283})} & \qw & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{0.2283})} & \qw & \qw & \qw & \ctrl{1} & \qw & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{0.0174})} & \gate{\mathrm{R_Y}\,(\mathrm{0.0987})} & \qw & \ctrl{4} & \qw & \qw\\
+	 	\nghost{{q}_{1} :  } & \lstick{{q}_{1} :  } & \gate{\mathrm{H}} & \qw & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{1.571})} & \qw & \qw & \ctrl{2} & \gate{\mathrm{R_Y}\,(\mathrm{-0.3295})} & \gate{\mathrm{R_Y}\,(\mathrm{0.2534})} & \qw & \qw & \qw & \ctrl{1} & \gate{\mathrm{R_Y}\,(\mathrm{-0.1221})} & \qw & \ctrl{3} & \gate{\mathrm{R_Y}\,(\mathrm{0.1711})} & \ctrl{-1} & \qw & \qw & \qw & \qw & \qw\\
+	 	\nghost{{q}_{2} :  } & \lstick{{q}_{2} :  } & \gate{\mathrm{H}} & \ctrl{1} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{1.239})} & \qw & \qw & \qw & \qw & \qw & \ctrl{-1} & \ctrl{-2} & \gate{\mathrm{R_Y}\,(\mathrm{0.1573})} & \gate{\mathrm{R_Y}\,(\mathrm{0.9876})} & \gate{\mathrm{R_Y}\,(\mathrm{-0.301})} & \gate{\mathrm{R_Y}\,(\mathrm{-0.4014})} & \qw & \qw & \qw & \qw & \qw & \ctrl{2} & \qw & \qw & \qw\\
+	 	\nghost{{q}_{3} :  } & \lstick{{q}_{3} :  } & \gate{\mathrm{H}} & \gate{\mathrm{R_Y}\,(\mathrm{1.571})} & \ctrl{-3} & \qw & \ctrl{-2} & \gate{\mathrm{R_Y}\,(\mathrm{-0.7545})} & \gate{\mathrm{R_Y}\,(\mathrm{-0.1782})} & \gate{\mathrm{R_Y}\,(\mathrm{0.1444})} & \gate{\mathrm{R_Y}\,(\mathrm{1.056})} & \qw & \qw & \ctrl{-1} & \qw & \qw & \qw & \ctrl{1} & \qw & \qw & \qw & \qw & \qw & \qw & \qw & \qw\\
+	 	\nghost{{q}_{4} :  } & \lstick{{q}_{4} :  } & \gate{\mathrm{H}} & \qw & \qw & \qw & \qw & \qw & \qw & \qw & \ctrl{-1} & \gate{\mathrm{R_Y}\,(\mathrm{-1.379})} & \qw & \qw & \qw & \qw & \ctrl{-2} & \gate{\mathrm{R_Y}\,(\mathrm{-0.2796})} & \gate{\mathrm{R_Y}\,(\mathrm{0.0806})} & \ctrl{-3} & \qw & \ctrl{-4} & \gate{\mathrm{R_Y}\,(\mathrm{-0.037})} & \gate{\mathrm{R_Y}\,(\mathrm{0.0279})} & \qw & \qw\\
+\\ }}
+\end{document}

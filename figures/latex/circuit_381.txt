@@ -1,0 +1,23 @@
+\documentclass[border=2px]{standalone}
+
+\usepackage[braket, qm]{qcircuit}
+\usepackage{graphicx}
+
+\begin{document}
+\scalebox{1.0}{
+\Qcircuit @C=1.0em @R=0.2em @!R { \\
+	 	\nghost{{q}_{0} :  } & \lstick{{q}_{0} :  } & \gate{\mathrm{R_Y}\,(\mathrm{2.309})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0011})} & \control\qw & \qw & \qw & \qw & \qw & \qw\\
+	 	\nghost{{q}_{1} :  } & \lstick{{q}_{1} :  } & \gate{\mathrm{R_Y}\,(\mathrm{0.0017})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.009})} & \ctrl{-1} & \gate{\mathrm{R_Y}\,(\mathrm{-0.005})} & \gate{\mathrm{R_Y}\,(\mathrm{-0.005})} & \control\qw & \qw & \qw\\
+	 	\nghost{{q}_{2} :  } & \lstick{{q}_{2} :  } & \gate{\mathrm{R_Y}\,(\mathrm{0.0029})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0082})} & \control\qw & \gate{\mathrm{R_Z}\,(\mathrm{0.0014})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0014})} & \ctrl{-1} & \qw & \qw\\
+	 	\nghost{{q}_{3} :  } & \lstick{{q}_{3} :  } & \gate{\mathrm{R_Y}\,(\mathrm{1.256})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0029})} & \ctrl{-1} & \gate{\mathrm{R_Y}\,(\mathrm{0.9457})} & \gate{\mathrm{R_Y}\,(\mathrm{0.9457})} & \control\qw & \qw & \qw\\
+	 	\nghost{{q}_{4} :  } & \lstick{{q}_{4} :  } & \gate{\mathrm{R_Y}\,(\mathrm{0.0025})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0079})} & \control\qw & \gate{\mathrm{R_Z}\,(\mathrm{0.0039})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0039})} & \ctrl{-1} & \qw & \qw\\
+	 	\nghost{{q}_{5} :  } & \lstick{{q}_{5} :  } & \gate{\mathrm{R_Y}\,(\mathrm{1.049})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0028})} & \ctrl{-1} & \gate{\mathrm{R_Y}\,(\mathrm{1.043})} & \gate{\mathrm{R_Y}\,(\mathrm{1.043})} & \control\qw & \qw & \qw\\
+	 	\nghost{{q}_{6} :  } & \lstick{{q}_{6} :  } & \gate{\mathrm{R_Y}\,(\mathrm{1.532})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0005})} & \control\qw & \gate{\mathrm{R_Z}\,(\mathrm{0.0053})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0053})} & \ctrl{-1} & \qw & \qw\\
+	 	\nghost{{q}_{7} :  } & \lstick{{q}_{7} :  } & \gate{\mathrm{R_Y}\,(\mathrm{-0.003})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0187})} & \ctrl{-1} & \gate{\mathrm{R_Y}\,(\mathrm{1.569})} & \gate{\mathrm{R_Y}\,(\mathrm{1.569})} & \control\qw & \qw & \qw\\
+	 	\nghost{{q}_{8} :  } & \lstick{{q}_{8} :  } & \gate{\mathrm{R_Y}\,(\mathrm{2.309})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0088})} & \control\qw & \gate{\mathrm{R_Z}\,(\mathrm{0.0085})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0085})} & \ctrl{-1} & \qw & \qw\\
+	 	\nghost{{q}_{9} :  } & \lstick{{q}_{9} :  } & \gate{\mathrm{R_Y}\,(\mathrm{1.574})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.0023})} & \ctrl{-1} & \gate{\mathrm{R_Y}\,(\mathrm{0.7823})} & \gate{\mathrm{R_Y}\,(\mathrm{0.7823})} & \control\qw & \qw & \qw\\
+	 	\nghost{{q}_{10} :  } & \lstick{{q}_{10} :  } & \gate{\mathrm{R_Y}\,(\mathrm{-0.003})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0089})} & \control\qw & \gate{\mathrm{R_Z}\,(\mathrm{0.0033})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0033})} & \ctrl{-1} & \qw & \qw\\
+	 	\nghost{{q}_{11} :  } & \lstick{{q}_{11} :  } & \gate{\mathrm{R_Y}\,(\mathrm{0.9594})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.0028})} & \ctrl{-1} & \gate{\mathrm{R_Y}\,(\mathrm{1.087})} & \gate{\mathrm{R_Y}\,(\mathrm{1.087})} & \control\qw & \qw & \qw\\
+	 	\nghost{{q}_{12} :  } & \lstick{{q}_{12} :  } & \gate{\mathrm{R_Y}\,(\mathrm{-0.0024})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0067})} & \qw & \qw & \qw & \ctrl{-1} & \qw & \qw\\
+\\ }}
+\end{document}

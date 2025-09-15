@@ -12,6 +12,8 @@ import torch.optim as optim
 
 from scipy.optimize import minimize
 
+EPS = 1e-12
+
 
 class QuantumCircuit(nn.Module):
     def __init__(self, qfunc, n_qubits, hamiltonian):
@@ -63,20 +65,62 @@ def KL_divergence_reward(circuit_string: str, ground_truth: dict) -> float:
     ground_truth_circuit = loads(circuit_with_params)
     ground_truth_circuit.remove_final_measurements()
     ground_truth_state = Statevector.from_instruction(ground_truth_circuit)
+    ground_truth_probs = ground_truth_state.probabilities_dict()
+    
+    for bitstring in probs.keys():
+        if bitstring not in ground_truth_probs:
+            ground_truth_probs[bitstring] = 0.0
 
+    for bitstring in ground_truth_probs.keys():
+        if bitstring not in probs:
+            probs[bitstring] = 0.0
+
+    sorted_probs = dict(sorted(probs.items()))
+    probs_list = list(sorted_probs.values())
+
+    sorted_probs2 = dict(sorted(ground_truth_probs.items()))
+    ground_truth_probs_list = list(sorted_probs2.values())
+
+    # If one list is shorter, add zeros to those bitstrings that are missing
+    
     relative_entropy = entropy(
-        list(probs.values()), 
-        list(ground_truth_state.probabilities_dict().values()),
+        probs_list,
+        ground_truth_probs_list,
         base=2,
         nan_policy='omit'
     )
 
-    # np.log2(len(probs)) is the maximum possible value for relative entropy
-    # when the distributions are uniform over the same number of outcomes
-    scaled_relative_entropy = relative_entropy / np.log2(len(probs))
+    return relative_entropy
 
-    # Lower is better for relative entropy, so we return 1 - scaled_relative_entropy
-    return 1 - scaled_relative_entropy
+def JS_divergence_reward(circuit_string: str, ground_truth: dict) -> float:
+
+    llm_circuit = loads(circuit_string)
+    llm_circuit.remove_final_measurements()
+    state = Statevector.from_instruction(llm_circuit)
+    probs = state.probabilities_dict()
+    circuit_with_params = ground_truth["circuit_with_params"]
+    ground_truth_circuit = loads(circuit_with_params)
+    ground_truth_circuit.remove_final_measurements()
+    ground_truth_state = Statevector.from_instruction(ground_truth_circuit)
+    ground_probs = ground_truth_state.probabilities_dict()
+    # Make sure both distributions have the same keys
+    all_keys = set(probs.keys()).union(set(ground_probs.keys()))
+    probs = np.array([probs.get(k, 0) for k in all_keys])
+    ground_probs = np.array([ground_probs.get(k, 0) for k in all_keys])
+
+    # Sort the probabilities to ensure consistent ordering
+    sorted_indices = np.argsort(list(all_keys))
+    probs = probs[sorted_indices]
+    ground_probs = ground_probs[sorted_indices]
+
+    m = 0.5 * (probs + ground_probs)
+    # KL helpers with smoothing
+    a = (probs + EPS) / (probs + EPS).sum()
+    b = (ground_probs + EPS) / (ground_probs + EPS).sum()
+    m = (m + EPS) / (m + EPS).sum()
+    js_div = 0.5 * np.sum(a * (np.log(a) - np.log(m))) + 0.5 * np.sum(b * (np.log(b) - np.log(m)))
+    d = float(np.sqrt(js_div / np.log(2.0)))
+    return 1.0 - d
 
 
 def expectation_value_reward(circuit_string: str, ground_truth: dict) -> float:
@@ -92,12 +136,11 @@ def expectation_value_reward(circuit_string: str, ground_truth: dict) -> float:
     expectation_value = statevector.expectation_value(cost_hamiltonian).real
 
     # Normalize the expectation value
-    print(f"Expectation Value: {expectation_value}, Smallest Eigenvalue: {smallest_eigenvalue}, Largest Eigenvalue: {largest_eigenvalue}")
     min_max_normalized_value = (expectation_value - smallest_eigenvalue) / (largest_eigenvalue - smallest_eigenvalue)
     return 1 - min_max_normalized_value
 
 
-def optimization_reward_qiskit(circuit_string: str, ground_truth: dict) -> float:
+def optimization_reward_qiskit(circuit_string: str, ground_truth: dict, parametrize = True) -> float:
     """
     A reward function that aims to optimize the circuit given the LLM generated warm-start circuit with initial parameters.
     
@@ -106,7 +149,12 @@ def optimization_reward_qiskit(circuit_string: str, ground_truth: dict) -> float
     qiskit_qc = loads(circuit_string)
     H = ground_truth["cost_hamiltonian"]
     qiskit_hamiltonian = construct_qiskit_hamiltonian(H)
-    qiskit_symbolic_param_qc, param_map = parametrize_qiskit_circuit(qiskit_qc)
+    if parametrize:
+        qiskit_symbolic_param_qc, param_map = parametrize_qiskit_circuit(qiskit_qc)
+    else:
+        qiskit_symbolic_param_qc = qiskit_qc
+        param_map = {np.random.uniform(0, 2 * np.pi) : param for param in qiskit_symbolic_param_qc.parameters.data}
+        print(param_map)
     param_items = list(param_map.items())
     initial_params = np.array([item[0] for item in param_items])
     param_objects = [item[1] for item in param_items]
@@ -140,14 +188,14 @@ def optimization_reward_qiskit(circuit_string: str, ground_truth: dict) -> float
         current_cost = cost_function(x)
         cost_history.append(current_cost)
         
-        if iteration_count % 10 == 0:
-            print(f'Step {iteration_count}, Cost: {current_cost:.6f}')
+        #if iteration_count % 10 == 0:
+        #    print(f'Step {iteration_count}, Cost: {current_cost:.6f}')
         
         # Check for convergence
         if len(cost_history) > 1:
             cost_change = abs(cost_history[-1] - cost_history[-2])
             if cost_change < tolerance:
-                print(f'Converged at step {iteration_count}: cost change {cost_change:.8f} < tolerance {tolerance}')
+                #print(f'Converged at step {iteration_count}: cost change {cost_change:.8f} < tolerance {tolerance}')
                 return True  # Stop optimization
         
         if iteration_count >= max_iterations:

@@ -1,0 +1,16 @@
+\documentclass[border=2px]{standalone}
+
+\usepackage[braket, qm]{qcircuit}
+\usepackage{graphicx}
+
+\begin{document}
+\scalebox{1.0}{
+\Qcircuit @C=1.0em @R=0.2em @!R { \\
+	 	\nghost{{q}_{0} :  } & \lstick{{q}_{0} :  } & \gate{\mathrm{H}} & \gate{\mathrm{R_Y}\,(\mathrm{-1.034})} & \gate{\mathrm{R_Y}\,(\mathrm{-0.8214})} & \gate{\mathrm{R_Y}\,(\mathrm{-0.3465})} & \qw & \qw & \qw & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.0995})} & \qw & \qw & \qw & \qw & \qw & \qw & \ctrl{1} & \qw & \ctrl{3} & \ctrl{5} & \ctrl{4} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.0207})} & \qw & \qw\\
+	 	\nghost{{q}_{1} :  } & \lstick{{q}_{1} :  } & \gate{\mathrm{H}} & \qw & \ctrl{-1} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{1.165})} & \gate{\mathrm{R_Y}\,(\mathrm{0.2703})} & \qw & \qw & \qw & \qw & \ctrl{4} & \qw & \qw & \qw & \ctrl{2} & \gate{\mathrm{R_Y}\,(\mathrm{0.0346})} & \gate{\mathrm{R_Y}\,(\mathrm{-0.0465})} & \gate{\mathrm{R_Y}\,(\mathrm{0.0193})} & \qw & \qw & \qw & \ctrl{3} & \qw & \qw & \qw\\
+	 	\nghost{{q}_{2} :  } & \lstick{{q}_{2} :  } & \gate{\mathrm{H}} & \qw & \qw & \ctrl{3} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{1.147})} & \ctrl{1} & \ctrl{2} & \qw & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{0.295})} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.1619})} & \qw & \ctrl{-1} & \qw & \qw & \qw & \qw & \qw & \qw & \qw & \qw & \qw\\
+	 	\nghost{{q}_{3} :  } & \lstick{{q}_{3} :  } & \gate{\mathrm{H}} & \ctrl{-3} & \gate{\mathrm{R_Y}\,(\mathrm{1.029})} & \qw & \ctrl{-2} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{0.4464})} & \qw & \ctrl{2} & \qw & \qw & \ctrl{-1} & \gate{\mathrm{R_Y}\,(\mathrm{0.0919})} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{0.0648})} & \ctrl{1} & \gate{\mathrm{R_Y}\,(\mathrm{-0.0404})} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.0326})} & \qw & \qw & \qw & \qw & \qw & \qw\\
+	 	\nghost{{q}_{4} :  } & \lstick{{q}_{4} :  } & \gate{\mathrm{H}} & \ctrl{1} & \gate{\mathrm{R_Y}\,(\mathrm{0.9979})} & \qw & \qw & \ctrl{-2} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{0.3932})} & \qw & \ctrl{-4} & \qw & \qw & \ctrl{-1} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.1438})} & \gate{\mathrm{R_Y}\,(\mathrm{0.0676})} & \qw & \ctrl{-3} & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.024})} & \gate{\mathrm{R_Y}\,(\mathrm{0.0135})} & \qw & \qw & \qw\\
+	 	\nghost{{q}_{5} :  } & \lstick{{q}_{5} :  } & \gate{\mathrm{H}} & \gate{\mathrm{R_Y}\,(\mathrm{-1.034})} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.6534})} & \gate{\mathrm{R_Y}\,(\mathrm{-0.5076})} & \qw & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.1561})} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.0697})} & \qw & \qw & \ctrl{-3} & \ctrl{-1} & \qw & \ctrl{-2} & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{0.0267})} & \qw & \qw & \ctrl{-5} & \qw & \qw\\
+\\ }}
+\end{document}

@@ -1,0 +1,17 @@
+\documentclass[border=2px]{standalone}
+
+\usepackage[braket, qm]{qcircuit}
+\usepackage{graphicx}
+
+\begin{document}
+\scalebox{1.0}{
+\Qcircuit @C=1.0em @R=0.2em @!R { \\
+	 	\nghost{{q}_{0} :  } & \lstick{{q}_{0} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.1616})} & \gate{\mathrm{R_Z}\,(\mathrm{0.2185})} & \gate{\mathrm{R_X}\,(\mathrm{0.1567})} & \gate{\mathrm{R_Z}\,(\mathrm{0.2183})} & \gate{\mathrm{R_X}\,(\mathrm{0.1614})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0028})} & \qw & \qw\\
+	 	\nghost{{q}_{1} :  } & \lstick{{q}_{1} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.1013})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.2427})} & \gate{\mathrm{R_X}\,(\mathrm{0.1025})} & \gate{\mathrm{R_Z}\,(\mathrm{0.2427})} & \gate{\mathrm{R_X}\,(\mathrm{0.1001})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0039})} & \qw & \qw\\
+	 	\nghost{{q}_{2} :  } & \lstick{{q}_{2} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.0235})} & \gate{\mathrm{R_Z}\,(\mathrm{0.2851})} & \gate{\mathrm{R_X}\,(\mathrm{0.0259})} & \gate{\mathrm{R_Z}\,(\mathrm{0.2851})} & \gate{\mathrm{R_X}\,(\mathrm{0.0304})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0019})} & \qw & \qw\\
+	 	\nghost{{q}_{3} :  } & \lstick{{q}_{3} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.0227})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.2882})} & \gate{\mathrm{R_X}\,(\mathrm{0.0257})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.2881})} & \gate{\mathrm{R_X}\,(\mathrm{0.0232})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0054})} & \qw & \qw\\
+	 	\nghost{{q}_{4} :  } & \lstick{{q}_{4} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.1625})} & \gate{\mathrm{R_Z}\,(\mathrm{0.2195})} & \gate{\mathrm{R_X}\,(\mathrm{0.1627})} & \gate{\mathrm{R_Z}\,(\mathrm{0.2198})} & \gate{\mathrm{R_X}\,(\mathrm{0.1645})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0088})} & \qw & \qw\\
+	 	\nghost{{q}_{5} :  } & \lstick{{q}_{5} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.5933})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0007})} & \gate{\mathrm{R_X}\,(\mathrm{0.5892})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0007})} & \gate{\mathrm{R_X}\,(\mathrm{0.5942})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0072})} & \qw & \qw\\
+	 	\nghost{{q}_{6} :  } & \lstick{{q}_{6} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.5932})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.0004})} & \gate{\mathrm{R_X}\,(\mathrm{0.5956})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.0004})} & \gate{\mathrm{R_X}\,(\mathrm{0.5945})} & \gate{\mathrm{R_Z}\,(\mathrm{0.009})} & \qw & \qw\\
+\\ }}
+\end{document}

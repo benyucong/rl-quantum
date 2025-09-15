@@ -1,0 +1,14 @@
+\documentclass[border=2px]{standalone}
+
+\usepackage[braket, qm]{qcircuit}
+\usepackage{graphicx}
+
+\begin{document}
+\scalebox{1.0}{
+\Qcircuit @C=1.0em @R=0.2em @!R { \\
+	 	\nghost{{q}_{0} :  } & \lstick{{q}_{0} :  } & \gate{\mathrm{H}} & \ctrl{1} & \gate{\mathrm{R_Y}\,(\mathrm{1.029})} & \ctrl{2} & \qw & \ctrl{3} & \gate{\mathrm{R_Y}\,(\mathrm{0.3724})} & \qw & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.0374})} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.0402})} & \qw & \qw & \qw\\
+	 	\nghost{{q}_{1} :  } & \lstick{{q}_{1} :  } & \gate{\mathrm{H}} & \gate{\mathrm{R_Y}\,(\mathrm{-1.034})} & \gate{\mathrm{R_Y}\,(\mathrm{-0.6992})} & \qw & \qw & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.2465})} & \ctrl{1} & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{0.041})} & \ctrl{-1} & \ctrl{2} & \qw & \qw\\
+	 	\nghost{{q}_{2} :  } & \lstick{{q}_{2} :  } & \gate{\mathrm{H}} & \gate{\mathrm{R_Y}\,(\mathrm{-1.034})} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.795})} & \gate{\mathrm{R_Y}\,(\mathrm{-0.1994})} & \qw & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{0.0825})} & \ctrl{1} & \ctrl{-2} & \ctrl{-1} & \qw & \qw & \qw & \qw\\
+	 	\nghost{{q}_{3} :  } & \lstick{{q}_{3} :  } & \gate{\mathrm{H}} & \ctrl{-1} & \gate{\mathrm{R_Y}\,(\mathrm{0.7003})} & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{0.668})} & \ctrl{-3} & \ctrl{-2} & \qw & \gate{\mathrm{R_Y}\,(\mathrm{-0.0812})} & \qw & \qw & \qw & \gate{\mathrm{R_Y}\,(\mathrm{0.0344})} & \qw & \qw\\
+\\ }}
+\end{document}

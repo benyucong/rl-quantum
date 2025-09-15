@@ -1,0 +1,19 @@
+\documentclass[border=2px]{standalone}
+
+\usepackage[braket, qm]{qcircuit}
+\usepackage{graphicx}
+
+\begin{document}
+\scalebox{1.0}{
+\Qcircuit @C=1.0em @R=0.2em @!R { \\
+	 	\nghost{{q}_{0} :  } & \lstick{{q}_{0} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.802})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0046})} & \gate{\mathrm{R_X}\,(\mathrm{0.8065})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0002})} & \qw & \qw\\
+	 	\nghost{{q}_{1} :  } & \lstick{{q}_{1} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.5671})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0501})} & \gate{\mathrm{R_X}\,(\mathrm{0.5666})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0042})} & \qw & \qw\\
+	 	\nghost{{q}_{2} :  } & \lstick{{q}_{2} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.8056})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0038})} & \gate{\mathrm{R_X}\,(\mathrm{0.8067})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0017})} & \qw & \qw\\
+	 	\nghost{{q}_{3} :  } & \lstick{{q}_{3} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.8015})} & \gate{\mathrm{R_Z}\,(\mathrm{0.003})} & \gate{\mathrm{R_X}\,(\mathrm{0.8034})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0077})} & \qw & \qw\\
+	 	\nghost{{q}_{4} :  } & \lstick{{q}_{4} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.0028})} & \gate{\mathrm{R_Z}\,(\mathrm{0.5911})} & \gate{\mathrm{R_X}\,(\mathrm{0.0028})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0017})} & \qw & \qw\\
+	 	\nghost{{q}_{5} :  } & \lstick{{q}_{5} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.0021})} & \gate{\mathrm{R_Z}\,(\mathrm{0.5238})} & \gate{\mathrm{R_X}\,(\mathrm{0.0021})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0053})} & \qw & \qw\\
+	 	\nghost{{q}_{6} :  } & \lstick{{q}_{6} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.8088})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.0022})} & \gate{\mathrm{R_X}\,(\mathrm{0.8059})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0051})} & \qw & \qw\\
+	 	\nghost{{q}_{7} :  } & \lstick{{q}_{7} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.8058})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.0018})} & \gate{\mathrm{R_X}\,(\mathrm{0.8071})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0095})} & \qw & \qw\\
+	 	\nghost{{q}_{8} :  } & \lstick{{q}_{8} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.8082})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.0008})} & \gate{\mathrm{R_X}\,(\mathrm{0.8045})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0029})} & \qw & \qw\\
+\\ }}
+\end{document}

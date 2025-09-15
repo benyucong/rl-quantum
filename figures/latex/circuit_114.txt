@@ -1,0 +1,16 @@
+\documentclass[border=2px]{standalone}
+
+\usepackage[braket, qm]{qcircuit}
+\usepackage{graphicx}
+
+\begin{document}
+\scalebox{1.0}{
+\Qcircuit @C=1.0em @R=0.2em @!R { \\
+	 	\nghost{{q}_{0} :  } & \lstick{{q}_{0} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.2849})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.2761})} & \gate{\mathrm{R_X}\,(\mathrm{0.2873})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0037})} & \qw & \qw\\
+	 	\nghost{{q}_{1} :  } & \lstick{{q}_{1} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.3277})} & \gate{\mathrm{R_Z}\,(\mathrm{-0.263})} & \gate{\mathrm{R_X}\,(\mathrm{0.3264})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0014})} & \qw & \qw\\
+	 	\nghost{{q}_{2} :  } & \lstick{{q}_{2} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.3225})} & \gate{\mathrm{R_Z}\,(\mathrm{0.2641})} & \gate{\mathrm{R_X}\,(\mathrm{0.3172})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0047})} & \qw & \qw\\
+	 	\nghost{{q}_{3} :  } & \lstick{{q}_{3} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.3053})} & \gate{\mathrm{R_Z}\,(\mathrm{0.2945})} & \gate{\mathrm{R_X}\,(\mathrm{0.3017})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0052})} & \qw & \qw\\
+	 	\nghost{{q}_{4} :  } & \lstick{{q}_{4} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.7982})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0004})} & \gate{\mathrm{R_X}\,(\mathrm{0.8033})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0072})} & \qw & \qw\\
+	 	\nghost{{q}_{5} :  } & \lstick{{q}_{5} :  } & \gate{\mathrm{R_X}\,(\mathrm{0.8022})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0002})} & \gate{\mathrm{R_X}\,(\mathrm{0.8022})} & \gate{\mathrm{R_Z}\,(\mathrm{0.0054})} & \qw & \qw\\
+\\ }}
+\end{document}
