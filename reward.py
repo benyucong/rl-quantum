@@ -134,7 +134,7 @@ def expectation_value_reward(circuit_string: str, ground_truth: dict) -> float:
     smallest_eigenvalue = json.loads(ground_truth["exact_solution"])["smallest_eigenvalues"][0]
     largest_eigenvalue = json.loads(ground_truth["exact_solution"])["largest_eigenvalue"]
     expectation_value = statevector.expectation_value(cost_hamiltonian).real
-
+    print(f"Qiskit Expectation Value: {expectation_value}, Smallest Eigenvalue: {smallest_eigenvalue}, Largest Eigenvalue: {largest_eigenvalue}")
     # Normalize the expectation value
     min_max_normalized_value = (expectation_value - smallest_eigenvalue) / (largest_eigenvalue - smallest_eigenvalue)
     return 1 - min_max_normalized_value

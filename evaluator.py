@@ -8,6 +8,7 @@ from utils import construct_qiskit_hamiltonian, parametrize_qiskit_circuit
 from concurrent.futures import ThreadPoolExecutor
 
 from warm_start import get_warmstart_qaoa_circuit, hamiltonian_to_quadratic_program
+from qiskit import transpile
 
 class Evaluator:
 
@@ -26,122 +27,148 @@ class Evaluator:
 
     def process_circuit(self, circuit_data):
         j, circuit = circuit_data
+        
+        # Initialize result dictionary with None values
+        result = {
+            "llm_kl_divergence_reward": None,
+            "llm_js_divergence_reward": None,
+            "llm_expectation_value": None,
+            "avg_random_llm_kl_divergence": None,
+            "avg_warmstart_kl_divergence": None,
+            "avg_warmstart_expectation_value": None,
+            "avg_random_llm_expectation_value": None,
+            "ground_truth_eigenvalue": None,
+            "avg_random_llm_js_divergence": None,
+            "avg_random_warmstart_js_divergence": None,
+            "avg_random_llm_optimization_reward": None,
+            "avg_random_warmstart_optimization_reward": None
+        }
+        
+        ground_truth_index = circuit["sample_index"]
+        test_item = self.test_data[ground_truth_index]
+        
+        # Get ground truth eigenvalue (this should always work)
         try:
-            # Original LLM circuit
+            exact_solution = json.loads(test_item["exact_solution"])
+            result["ground_truth_eigenvalue"] = exact_solution["smallest_eigenvalues"][0]
+        except Exception as e:
+            print(f"Error getting ground truth for circuit {j}: {e}")
+        
+        # Process LLM circuit
+        try:
             qasm_str = circuit["generated_circuit"]
             qiskit_circuit = loads(qasm_str)
+            parametrized_llm_circuit, llm_param_map = parametrize_qiskit_circuit(qiskit_circuit)
             
-            # Warm-start QAOA circuit
+            # LLM original circuit rewards
+            try:
+                result["llm_kl_divergence_reward"] = float(KL_divergence_reward(qasm_str, test_item))
+            except Exception as e:
+                print(f"Error computing LLM KL divergence for circuit {j}: {e}")
+            
+            try:
+                result["llm_js_divergence_reward"] = JS_divergence_reward(qasm_str, test_item)
+            except Exception as e:
+                print(f"Error computing LLM JS divergence for circuit {j}: {e}")
+            
+            try:
+                result["llm_expectation_value"] = expectation_value_reward(qasm_str, test_item)
+            except Exception as e:
+                print(f"Error computing LLM expectation value for circuit {j}: {e}")
+            
+            try:
+                result["avg_random_llm_optimization_reward"] = float(optimization_reward_qiskit(qasm_str, test_item, parametrize=True))
+            except Exception as e:
+                print(f"Error computing LLM optimization reward for circuit {j}: {e}")
+            
+            # Random LLM circuits
+            try:
+                def generate_random_llm_circuit(_):
+                    param_map_random = {param: np.random.uniform(-np.pi, np.pi) for param in llm_param_map.values()}
+                    new_circuit = parametrized_llm_circuit.assign_parameters(param_map_random)
+                    return dumps(new_circuit)
+                
+                with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+                    random_llm_circuits = list(executor.map(generate_random_llm_circuit, range(100)))
+                
+                # Compute rewards for random LLM circuits
+                try:
+                    with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+                        random_llm_rewards = list(executor.map(lambda c: KL_divergence_reward(c, test_item), random_llm_circuits))
+                    result["avg_random_llm_kl_divergence"] = float(np.mean(random_llm_rewards))
+                except Exception as e:
+                    print(f"Error computing random LLM KL divergence for circuit {j}: {e}")
+                
+                try:
+                    with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+                        random_llm_js_rewards = list(executor.map(lambda c: JS_divergence_reward(c, test_item), random_llm_circuits))
+                    result["avg_random_llm_js_divergence"] = float(np.mean(random_llm_js_rewards))
+                except Exception as e:
+                    print(f"Error computing random LLM JS divergence for circuit {j}: {e}")
+                
+                try:
+                    with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+                        random_expectation_values = list(executor.map(lambda c: expectation_value_reward(c, test_item), random_llm_circuits))
+                    result["avg_random_llm_expectation_value"] = float(np.mean(random_expectation_values))
+                except Exception as e:
+                    print(f"Error computing random LLM expectation values for circuit {j}: {e}")
+                    
+            except Exception as e:
+                print(f"Error generating random LLM circuits for circuit {j}: {e}")
+                
+        except Exception as e:
+            print(f"Error processing LLM circuit {j}: {e}")
+        
+        # Process warm-start circuit (this is the part that often fails)
+        try:
             cost_hamiltonian_str = circuit['dataset_metrics']['cost_hamiltonian']
             cost_ham = construct_qiskit_hamiltonian(cost_hamiltonian_str)
             qp = hamiltonian_to_quadratic_program(cost_ham)
             warmstart_circuit = get_warmstart_qaoa_circuit(qp, p=1)
-            # Parametrize circuits for random sampling
-            parametrized_llm_circuit, llm_param_map = parametrize_qiskit_circuit(qiskit_circuit)
             ws_param_map = warmstart_circuit.parameters
             
-            ground_truth_index = circuit["sample_index"]
-            test_item = self.test_data[ground_truth_index]
+            try:
+                result["avg_random_warmstart_optimization_reward"] = float(optimization_reward_qiskit(dumps(warmstart_circuit), test_item, parametrize=False))
+            except Exception as e:
+                print(f"Error computing warmstart optimization reward for circuit {j}: {e}")
             
-            # Generate random circuits for both LLM and warm-start
-            def generate_random_llm_circuit(_):
-                param_map_random = {param: np.random.uniform(-np.pi, np.pi) for param in llm_param_map.values()}
-                new_circuit = parametrized_llm_circuit.assign_parameters(param_map_random)
-                return dumps(new_circuit)
-            
-            def generate_random_ws_circuit(_):
-                param_map_random = {param: np.random.uniform(-np.pi, np.pi) for param in ws_param_map.data}
-                new_circuit = warmstart_circuit.assign_parameters(param_map_random)
-                return dumps(new_circuit)
-            
-            # Generate 50 random circuits for each method
-            with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
-                random_llm_circuits = list(executor.map(generate_random_llm_circuit, range(100)))
-                random_ws_circuits = list(executor.map(generate_random_ws_circuit, range(100)))
-            
-            # Compute KL divergence for all methods
-            def compute_kl_divergence(circuit_qasm):
-                return KL_divergence_reward(circuit_qasm, test_item)
-            
-            def compute_expectation_value(circuit_qasm):
-                return expectation_value_reward(circuit_qasm, test_item)
-            
-            def compute_js_divergence(circuit_qasm):
-                return JS_divergence_reward(circuit_qasm, test_item)
-
-            def compute_optimization_reward(circuit_qasm, parametrize=True):
-                return optimization_reward_qiskit(circuit_qasm, test_item, parametrize=parametrize)
-
-            with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
-                # Original LLM circuit reward
-                llm_reward = compute_kl_divergence(qasm_str)
+            try:
+                def generate_random_ws_circuit(_):
+                    param_map_random = {param: np.random.uniform(-np.pi, np.pi) for param in ws_param_map.data}
+                    new_circuit = warmstart_circuit.assign_parameters(param_map_random)
+                    return dumps(new_circuit)
                 
-                # Random LLM circuits rewards
-                random_llm_rewards = list(executor.map(compute_kl_divergence, random_llm_circuits))
-                random_ws_rewards = list(executor.map(compute_kl_divergence, random_ws_circuits))
+                with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+                    random_ws_circuits = list(executor.map(generate_random_ws_circuit, range(100)))
                 
-                # Expectation values for warm-start circuits
-                ws_expectation_values = list(executor.map(compute_expectation_value, random_ws_circuits))
-                random_expectation_values = list(executor.map(compute_expectation_value, random_llm_circuits))
-
-                # JS Divergence rewards (if needed)
-                random_llm_js_rewards = list(executor.map(compute_js_divergence, random_llm_circuits))
-                random_ws_js_rewards = list(executor.map(compute_js_divergence, random_ws_circuits))
+                try:
+                    with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+                        random_ws_rewards = list(executor.map(lambda c: KL_divergence_reward(c, test_item), random_ws_circuits))
+                    result["avg_warmstart_kl_divergence"] = float(np.mean(random_ws_rewards))
+                except Exception as e:
+                    print(f"Error computing warmstart KL divergence for circuit {j}: {e}")
                 
-                llm_original_js = compute_js_divergence(qasm_str)
-                llm_original_expectation = compute_expectation_value(qasm_str)
-
-                # Optimization reward for the original LLM circuit
-                llm_optimization_reward = compute_optimization_reward(qasm_str)
-                # Optimization reward for the original warm-start circuit
-                ws_optimization_reward = compute_optimization_reward(dumps(warmstart_circuit), parametrize=False)
+                try:
+                    with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+                        ws_expectation_values = list(executor.map(lambda c: expectation_value_reward(c, test_item), random_ws_circuits))
+                    result["avg_warmstart_expectation_value"] = float(np.mean(ws_expectation_values))
+                except Exception as e:
+                    print(f"Error computing warmstart expectation values for circuit {j}: {e}")
                 
-            
-            # Calculate averages
-            avg_random_llm_reward = float(np.mean(random_llm_rewards))
-            avg_ws_reward = float(np.mean(random_ws_rewards))
-            avg_ws_expectation = float(np.mean(ws_expectation_values))
-            avg_random_expectation = float(np.mean(random_expectation_values))
-            avg_random_llm_js = float(np.mean(random_llm_js_rewards))
-            avg_random_ws_js = float(np.mean(random_ws_js_rewards))
-            avg_random_llm_optimization = float(llm_optimization_reward)
-            avg_random_ws_optimization = float(ws_optimization_reward)
-
-            exact_solution = json.loads(test_item["exact_solution"])
-            
-            result = {
-                "llm_kl_divergence_reward": float(llm_reward),
-                "llm_js_divergence_reward": llm_original_js,
-                "llm_expectation_value": llm_original_expectation,
-                "avg_random_llm_kl_divergence": avg_random_llm_reward,
-                "avg_warmstart_kl_divergence": avg_ws_reward,
-                "avg_warmstart_expectation_value": avg_ws_expectation,
-                "avg_random_llm_expectation_value": avg_random_expectation,
-                "ground_truth_eigenvalue": exact_solution["smallest_eigenvalues"][0],
-                "avg_random_llm_js_divergence": avg_random_llm_js,
-                "avg_random_warmstart_js_divergence": avg_random_ws_js,
-                "avg_random_llm_optimization_reward": avg_random_llm_optimization,
-                "avg_random_warmstart_optimization_reward": avg_random_ws_optimization
-            }
-            
-            return ground_truth_index, result
-            
+                try:
+                    with ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+                        random_ws_js_rewards = list(executor.map(lambda c: JS_divergence_reward(c, test_item), random_ws_circuits))
+                    result["avg_random_warmstart_js_divergence"] = float(np.mean(random_ws_js_rewards))
+                except Exception as e:
+                    print(f"Error computing warmstart JS divergence for circuit {j}: {e}")
+                    
+            except Exception as e:
+                print(f"Error generating random warmstart circuits for circuit {j}: {e}")
+                
         except Exception as e:
-            print(f"Error processing circuit {j}: {e}")
-            return circuit["sample_index"], {
-                "llm_kl_divergence_reward": None,
-                "llm_js_divergence_reward": None,
-                "llm_expectation_value": None,
-                "avg_random_llm_kl_divergence": None,
-                "avg_warmstart_kl_divergence": None,
-                "avg_warmstart_expectation_value": None,
-                "avg_random_llm_expectation_value": None,
-                "ground_truth_eigenvalue": None,
-                "avg_random_llm_js_divergence": None,
-                "avg_random_warmstart_js_divergence": None,
-                "avg_random_llm_optimization_reward": None,
-                "avg_random_warmstart_optimization_reward": None
-            }
+            print(f"Error processing warmstart circuit {j}: {e}")
+        
+        return ground_truth_index, result
 
     def evaluate(self):
         # Process all circuits in parallel
@@ -154,8 +181,9 @@ class Evaluator:
 
         for j, circuit in enumerate(circuits):
             print(f"Processing circuit {j}/{len(circuits)}")
-            if str(circuit["sample_index"]) in rewards:
-                print(f"Skipping circuit {j} (index {circuit['sample_index']}) - already processed.")
+            # Skip already processed circuits if the entry does not contain Nones
+            if str(circuit["sample_index"]) in rewards and all(value is not None for value in rewards[str(circuit["sample_index"])].values()):
+                print(f"Skipping circuit {j} (index {circuit['sample_index']}) as it is already processed.")
                 continue
             ground_truth_index, result = self.process_circuit((j, circuit))
             rewards[str(ground_truth_index)] = result
