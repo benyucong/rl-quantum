@@ -8,6 +8,7 @@ import time
 import os
 from math import comb
 from typing import Any, Dict, List, Tuple
+from tqdm import tqdm
 
 import numpy as np
 
@@ -219,16 +220,16 @@ def process_circuits(
     # Process each sample (problem)
     processed_samples: List[Dict[str, Any]] = []
 
-    for idx, sample in enumerate(results_in):
+    for idx, sample in enumerate(tqdm(results_in, desc="Processing samples")):
         # Ensure solution JSON is parsed
         if isinstance(sample["dataset_metrics"].get("solution"), str):
             sample["dataset_metrics"]["solution"] = json.loads(sample["dataset_metrics"]["solution"])
 
         hamiltonian = sample["dataset_metrics"]["cost_hamiltonian"]
         generations = _get_generations(sample)
-        print(generations)
+        # print(generations)
         n = len(generations)
-        print("Total_numbers: ", n)
+        # print("Total_numbers: ", n)
 
         per_cand = []
         c_syntactic = 0

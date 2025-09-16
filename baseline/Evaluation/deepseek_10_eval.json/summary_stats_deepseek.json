@@ -1,0 +1,18 @@
+{
+  "total_samples": 580,
+  "k": 10,
+  "mean_pass_at_k": {
+    "syntactic": 0.9896551724137931,
+    "correct_state": 0.08448275862068966,
+    "relative_entropy": 0.16379310344827586,
+    "expectation_value_diff": 0.2637931034482759
+  },
+  "average_relative_entropy": 16.393632534018572,
+  "median_relative_entropy": 6.731162365493828,
+  "std_relative_entropy": 21.730960024910015,
+  "average_expectation_value": -0.17613627700220466,
+  "median_expectation_value": -3.7955207553286296e-16,
+  "std_expectation_value": 4.065424346513533,
+  "average_solution_expectation_value": -4.4958841698903935,
+  "average_random_expectation_value": 0.011129941923332354
+}
