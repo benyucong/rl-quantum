@@ -1,0 +1,203 @@
+OPENQASM 3.0;
+include "stdgates.inc";
+bit[10] c;
+qubit[10] q;
+
+// Layer 1: Initial Hadamard gates
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+h q[4];
+h q[5];
+h q[6];
+h q[7];
+h q[8];
+h q[9];
+
+// Layer 1: Problem-specific entangling gates
+cx q[0], q[1];
+rz(0.2145) q[1];
+cx q[0], q[1];
+cx q[0], q[4];
+rz(0.1987) q[4];
+cx q[0], q[4];
+cx q[0], q[6];
+rz(0.2231) q[6];
+cx q[0], q[6];
+cx q[1], q[2];
+rz(0.1876) q[2];
+cx q[1], q[2];
+cx q[1], q[6];
+rz(0.2054) q[6];
+cx q[1], q[6];
+cx q[2], q[5];
+rz(0.1923) q[5];
+cx q[2], q[5];
+cx q[2], q[6];
+rz(0.2118) q[6];
+cx q[2], q[6];
+cx q[3], q[4];
+rz(0.1795) q[4];
+cx q[3], q[4];
+cx q[4], q[5];
+rz(0.1852) q[5];
+cx q[4], q[5];
+cx q[4], q[6];
+rz(0.2089) q[6];
+cx q[4], q[6];
+
+// Layer 1: Mixer
+rz(0.1247) q[0];
+rz(0.1321) q[1];
+rz(0.1189) q[2];
+rz(0.1075) q[3];
+rz(0.1412) q[4];
+rz(0.1283) q[5];
+rz(0.1498) q[6];
+rz(0.0956) q[7];
+rz(0.1023) q[8];
+rz(0.0897) q[9];
+
+// Layer 2: Problem-specific entangling gates
+cx q[0], q[1];
+rz(0.1983) q[1];
+cx q[0], q[1];
+cx q[0], q[4];
+rz(0.1841) q[4];
+cx q[0], q[4];
+cx q[0], q[6];
+rz(0.2072) q[6];
+cx q[0], q[6];
+cx q[1], q[2];
+rz(0.1739) q[2];
+cx q[1], q[2];
+cx q[1], q[6];
+rz(0.1908) q[6];
+cx q[1], q[6];
+cx q[2], q[5];
+rz(0.1784) q[5];
+cx q[2], q[5];
+cx q[2], q[6];
+rz(0.1967) q[6];
+cx q[2], q[6];
+cx q[3], q[4];
+rz(0.1665) q[4];
+cx q[3], q[4];
+cx q[4], q[5];
+rz(0.1718) q[5];
+cx q[4], q[5];
+cx q[4], q[6];
+rz(0.1939) q[6];
+cx q[4], q[6];
+
+// Layer 2: Mixer
+rz(0.1158) q[0];
+rz(0.1226) q[1];
+rz(0.1104) q[2];
+rz(0.0998) q[3];
+rz(0.1311) q[4];
+rz(0.1191) q[5];
+rz(0.1391) q[6];
+rz(0.0887) q[7];
+rz(0.0950) q[8];
+rz(0.0832) q[9];
+
+// Layer 3: Problem-specific entangling gates
+cx q[0], q[1];
+rz(0.1841) q[1];
+cx q[0], q[1];
+cx q[0], q[4];
+rz(0.1709) q[4];
+cx q[0], q[4];
+cx q[0], q[6];
+rz(0.1924) q[6];
+cx q[0], q[6];
+cx q[1], q[2];
+rz(0.1614) q[2];
+cx q[1], q[2];
+cx q[1], q[6];
+rz(0.1771) q[6];
+cx q[1], q[6];
+cx q[2], q[5];
+rz(0.1656) q[5];
+cx q[2], q[5];
+cx q[2], q[6];
+rz(0.1826) q[6];
+cx q[2], q[6];
+cx q[3], q[4];
+rz(0.1545) q[4];
+cx q[3], q[4];
+cx q[4], q[5];
+rz(0.1594) q[5];
+cx q[4], q[5];
+cx q[4], q[6];
+rz(0.1800) q[6];
+cx q[4], q[6];
+
+// Layer 3: Mixer
+rz(0.1075) q[0];
+rz(0.1138) q[1];
+rz(0.1025) q[2];
+rz(0.0926) q[3];
+rz(0.1217) q[4];
+rz(0.1106) q[5];
+rz(0.1291) q[6];
+rz(0.0824) q[7];
+rz(0.0882) q[8];
+rz(0.0772) q[9];
+
+// Layer 4: Problem-specific entangling gates
+cx q[0], q[1];
+rz(0.1709) q[1];
+cx q[0], q[1];
+cx q[0], q[4];
+rz(0.1586) q[4];
+cx q[0], q[4];
+cx q[0], q[6];
+rz(0.1786) q[6];
+cx q[0], q[6];
+cx q[1], q[2];
+rz(0.1498) q[2];
+cx q[1], q[2];
+cx q[1], q[6];
+rz(0.1644) q[6];
+cx q[1], q[6];
+cx q[2], q[5];
+rz(0.1537) q[5];
+cx q[2], q[5];
+cx q[2], q[6];
+rz(0.1695) q[6];
+cx q[2], q[6];
+cx q[3], q[4];
+rz(0.1434) q[4];
+cx q[3], q[4];
+cx q[4], q[5];
+rz(0.1479) q[5];
+cx q[4], q[5];
+cx q[4], q[6];
+rz(0.1671) q[6];
+cx q[4], q[6];
+
+// Layer 4: Mixer
+rz(0.0998) q[0];
+rz(0.1056) q[1];
+rz(0.0951) q[2];
+rz(0.0859) q[3];
+rz(0.1130) q[4];
+rz(0.1027) q[5];
+rz(0.1198) q[6];
+rz(0.0765) q[7];
+rz(0.0819) q[8];
+rz(0.0717) q[9];
+
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];
+c[4] = measure q[4];
+c[5] = measure q[5];
+c[6] = measure q[6];
+c[7] = measure q[7];
+c[8] = measure q[8];
+c[9] = measure q[9];

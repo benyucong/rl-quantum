@@ -1,0 +1,232 @@
+OPENQASM 3.0;
+include "stdgates.inc";
+bit[12] c;
+qubit[12] q;
+h q[0];
+h q[1];
+h q[2];
+h q[3];
+h q[4];
+h q[5];
+h q[6];
+h q[7];
+h q[8];
+h q[9];
+h q[10];
+h q[11];
+// Hyperedge [0,4,6,7,8,10]
+ccx q[0], q[4], q[6];
+ccx q[6], q[7], q[8];
+ccx q[8], q[10], q[0];
+rz(-0.0421) q[0];
+ccx q[8], q[10], q[0];
+ccx q[6], q[7], q[8];
+ccx q[0], q[4], q[6];
+// Hyperedge [1,4,5,6,7]
+ccx q[1], q[4], q[5];
+ccx q[5], q[6], q[7];
+rz(-0.0387) q[7];
+ccx q[5], q[6], q[7];
+ccx q[1], q[4], q[5];
+// Hyperedge [1,2,4,5,6,9]
+ccx q[1], q[2], q[4];
+ccx q[4], q[5], q[6];
+ccx q[6], q[9], q[1];
+rz(-0.0352) q[1];
+ccx q[6], q[9], q[1];
+ccx q[4], q[5], q[6];
+ccx q[1], q[2], q[4];
+// Hyperedge [0,2,5,6,7,11]
+ccx q[0], q[2], q[5];
+ccx q[5], q[6], q[7];
+ccx q[7], q[11], q[0];
+rz(-0.0338) q[0];
+ccx q[7], q[11], q[0];
+ccx q[5], q[6], q[7];
+ccx q[0], q[2], q[5];
+// Hyperedge [2,3,4,7,8,9,11]
+ccx q[2], q[3], q[4];
+ccx q[4], q[7], q[8];
+ccx q[8], q[9], q[11];
+ccx q[11], q[2], q[3];
+rz(-0.0294) q[3];
+ccx q[11], q[2], q[3];
+ccx q[8], q[9], q[11];
+ccx q[4], q[7], q[8];
+ccx q[2], q[3], q[4];
+// Hyperedge [3,5,6,7,9,11]
+ccx q[3], q[5], q[6];
+ccx q[6], q[7], q[9];
+ccx q[9], q[11], q[3];
+rz(-0.0316) q[3];
+ccx q[9], q[11], q[3];
+ccx q[6], q[7], q[9];
+ccx q[3], q[5], q[6];
+// Hyperedge [1,2,3,5,6,7,8,9]
+ccx q[1], q[2], q[3];
+ccx q[3], q[5], q[6];
+ccx q[6], q[7], q[8];
+ccx q[8], q[9], q[1];
+rz(-0.0269) q[1];
+ccx q[8], q[9], q[1];
+ccx q[6], q[7], q[8];
+ccx q[3], q[5], q[6];
+ccx q[1], q[2], q[3];
+// Hyperedge [1,11,4]
+ccx q[1], q[11], q[4];
+rz(-0.0453) q[4];
+ccx q[1], q[11], q[4];
+// Hyperedge [0,4,7,8,11]
+ccx q[0], q[4], q[7];
+ccx q[7], q[8], q[11];
+rz(-0.0375) q[11];
+ccx q[7], q[8], q[11];
+ccx q[0], q[4], q[7];
+// Hyperedge [9,10,5,7]
+ccx q[9], q[10], q[5];
+ccx q[5], q[7], q[9];
+rz(-0.0398) q[9];
+ccx q[5], q[7], q[9];
+ccx q[9], q[10], q[5];
+// Hyperedge [0,2,5,7,8,10]
+ccx q[0], q[2], q[5];
+ccx q[5], q[7], q[8];
+ccx q[8], q[10], q[0];
+rz(-0.0341) q[0];
+ccx q[8], q[10], q[0];
+ccx q[5], q[7], q[8];
+ccx q[0], q[2], q[5];
+// Hyperedge [0,3,6,7,8,9,10]
+ccx q[0], q[3], q[6];
+ccx q[6], q[7], q[8];
+ccx q[8], q[9], q[10];
+ccx q[10], q[0], q[3];
+rz(-0.0278) q[3];
+ccx q[10], q[0], q[3];
+ccx q[8], q[9], q[10];
+ccx q[6], q[7], q[8];
+ccx q[0], q[3], q[6];
+// Hyperedge [1,10,11,9]
+ccx q[1], q[10], q[11];
+ccx q[11], q[9], q[1];
+rz(-0.0402) q[1];
+ccx q[11], q[9], q[1];
+ccx q[1], q[10], q[11];
+// Hyperedge [0,3,5]
+ccx q[0], q[3], q[5];
+rz(-0.0467) q[5];
+ccx q[0], q[3], q[5];
+// Hyperedge [0,2,3,4,6,8,9,10]
+ccx q[0], q[2], q[3];
+ccx q[3], q[4], q[6];
+ccx q[6], q[8], q[9];
+ccx q[9], q[10], q[0];
+rz(-0.0253) q[0];
+ccx q[9], q[10], q[0];
+ccx q[6], q[8], q[9];
+ccx q[3], q[4], q[6];
+ccx q[0], q[2], q[3];
+// Hyperedge [2,3,5,6,8,10]
+ccx q[2], q[3], q[5];
+ccx q[5], q[6], q[8];
+ccx q[8], q[10], q[2];
+rz(-0.0324) q[2];
+ccx q[8], q[10], q[2];
+ccx q[5], q[6], q[8];
+ccx q[2], q[3], q[5];
+// Hyperedge [0,4,5,6,7,9,11]
+ccx q[0], q[4], q[5];
+ccx q[5], q[6], q[7];
+ccx q[7], q[9], q[11];
+ccx q[11], q[0], q[4];
+rz(-0.0287) q[4];
+ccx q[11], q[0], q[4];
+ccx q[7], q[9], q[11];
+ccx q[5], q[6], q[7];
+ccx q[0], q[4], q[5];
+// Hyperedge [0,3,4,7,9,11]
+ccx q[0], q[3], q[4];
+ccx q[4], q[7], q[9];
+ccx q[9], q[11], q[0];
+rz(-0.0359) q[0];
+ccx q[9], q[11], q[0];
+ccx q[4], q[7], q[9];
+ccx q[0], q[3], q[4];
+// Hyperedge [1,2,4,5,8]
+ccx q[1], q[2], q[4];
+ccx q[4], q[5], q[8];
+rz(-0.0389) q[8];
+ccx q[4], q[5], q[8];
+ccx q[1], q[2], q[4];
+// Hyperedge [1,3,6,7,10,11]
+ccx q[1], q[3], q[6];
+ccx q[6], q[7], q[10];
+ccx q[10], q[11], q[1];
+rz(-0.0331) q[1];
+ccx q[10], q[11], q[1];
+ccx q[6], q[7], q[10];
+ccx q[1], q[3], q[6];
+// Hyperedge [2,5,6,8,9,10,11]
+ccx q[2], q[5], q[6];
+ccx q[6], q[8], q[9];
+ccx q[9], q[10], q[11];
+ccx q[11], q[2], q[5];
+rz(-0.0262) q[5];
+ccx q[11], q[2], q[5];
+ccx q[9], q[10], q[11];
+ccx q[6], q[8], q[9];
+ccx q[2], q[5], q[6];
+// Hyperedge [3,4,6,7,9]
+ccx q[3], q[4], q[6];
+ccx q[6], q[7], q[9];
+rz(-0.0368) q[9];
+ccx q[6], q[7], q[9];
+ccx q[3], q[4], q[6];
+h q[0];
+rz(0.0842) q[0];
+h q[0];
+h q[1];
+rz(0.0774) q[1];
+h q[1];
+h q[2];
+rz(0.0704) q[2];
+h q[2];
+h q[3];
+rz(0.0676) q[3];
+h q[3];
+h q[4];
+rz(0.0906) q[4];
+h q[4];
+h q[5];
+rz(0.0934) q[5];
+h q[5];
+h q[6];
+rz(0.0736) q[6];
+h q[6];
+h q[7];
+rz(0.0750) q[7];
+h q[7];
+h q[8];
+rz(0.0778) q[8];
+h q[8];
+h q[9];
+rz(0.0796) q[9];
+h q[9];
+h q[10];
+rz(0.0804) q[10];
+h q[10];
+h q[11];
+rz(0.0750) q[11];
+h q[11];
+c[0] = measure q[0];
+c[1] = measure q[1];
+c[2] = measure q[2];
+c[3] = measure q[3];
+c[4] = measure q[4];
+c[5] = measure q[5];
+c[6] = measure q[6];
+c[7] = measure q[7];
+c[8] = measure q[8];
+c[9] = measure q[9];
+c[10] = measure q[10];
+c[11] = measure q[11];
