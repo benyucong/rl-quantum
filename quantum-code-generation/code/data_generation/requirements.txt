@@ -1,0 +1,12 @@
+dimod==0.12.18
+jaxlib>=0.5.1
+jax[cuda12]
+matplotlib==3.10.0
+networkx==3.4.2
+numpy>=1.17,<2.0.0
+optax==0.2.4
+PennyLane==0.40.0
+PennyLane_qiskit==0.40.0
+qiskit==1.2.4
+scipy==1.15.2
+outdated>=0.2.0

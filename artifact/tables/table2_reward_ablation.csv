@@ -1,0 +1,6 @@
+variant,components,pass1_scr_pct,pass1_srev_pct,pass1_re,pass1_hqcr_pct,pass10_scr_pct,pass10_srev_pct,pass10_re,pass10_hqcr_pct
+Full (Vista),Val + RE + EV + Opt,99.31,22.41,11.61,17.24,100.00,33.10,8.48,27.24
+w/o EV term,Val + RE + Opt,98.62,20.69,11.82,16.38,100.00,31.03,9.12,26.72
+w/o RE term,Val + EV + Opt,66.38,5.17,24.67,5.69,79.82,15.52,18.26,16.90
+w/o Opt term,Val + RE + EV,98.79,21.90,11.98,16.90,100.00,32.76,9.01,26.55
+Validity only,Val,99.13,18.79,12.89,14.66,100.00,30.86,11.27,23.27

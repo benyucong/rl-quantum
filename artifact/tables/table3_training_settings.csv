@@ -1,0 +1,13 @@
+component,configuration
+Base model,Qwen3-4B-Instruct-2507
+SFT setup,Quantum Datasets [24]
+SFT learning rate,2e-5
+Rollout Num,16
+Temperature,0.7
+top_p,0.8
+top_k,-1
+Token limits,Prompt: 1024; Response: 9216; Observation: 2048; Action: 8192
+Optimizer,AdamW [35]
+Learning rate,1e-6
+Epochs,10
+Batch size,128

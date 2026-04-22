@@ -1,0 +1,3 @@
+variant,N_total,p_syntax_pass,p_js_pass,p_ev_pass,t_syntax_ms,t_js_ms,t_ev_ms,t_opt_ms
+Gated (syntax→JS→EV→Opt),10000,0.905,0.50,0.68,124.3,1213.9,7214.7,500.0
+No-gating (syntax→Opt),10000,0.905,1.00,1.00,124.3,0.0,0.0,8928.6
