@@ -4,9 +4,9 @@ Paper: "Vista: Verifier-in-the-Loop Agentic RL for Semantic Program Synthesis in
 
 This document is the evaluator-facing README for the artifact. It is written to match the CAIS 2026 artifact evaluation expectations: describe the components, the environment, the major paper claims, a minimal working example, and the full reproduction workflow.
 
-## Recommended Badge Target
+## Badge Target and Artifact URL
 
-GitHub-only recommended target: Functional + Results Reproduced, if the repository includes the raw generation outputs and final evaluation/plot data needed to reproduce the paper results.
+For a GitHub-only submission, request Functional + Results Reproduced only if the repository includes the raw generation outputs and final evaluation/plot data needed to reproduce the paper results. If those raw outputs are absent and reviewers must regenerate them from the 4B checkpoint, the realistic GitHub-only target is Functional.
 
 Use this repository as the artifact URL:
 
@@ -14,11 +14,11 @@ Use this repository as the artifact URL:
 
 CAIS's Available checklist requires a public archive with irrevocable versioning and long-term storage, "such as Zenodo but not GitHub." Therefore, if the artifact is submitted only as a GitHub repository, do not rely on receiving the Available badge. If you later create a Zenodo archive or another DOI-backed archive for the exact repository snapshot, then the target can be upgraded to Available + Functional + Results Reproduced.
 
-The Vista/QUASAR checkpoint is public on Hugging Face. If raw generation outputs are not included in the GitHub repository and regeneration is too expensive for reviewers, the realistic GitHub-only target is Functional rather than Results Reproduced.
+The Vista checkpoint is public on Hugging Face, but including raw generated-circuit JSON files is still the recommended path for a low-friction Results Reproduced review.
 
-## HotCRP Submission Form Draft
+## Submission Metadata
 
-Use this as the starting text for the CAIS AE submission.
+Use this information in the CAIS AE submission form.
 
 - Artifact URL or package: `https://github.com/benyucong/rl-quantum`
 - Requested badges: Functional + Results Reproduced, assuming the GitHub repository includes the public checkpoint/dataset links, raw generation outputs, and logs described below.
@@ -53,7 +53,7 @@ Generation and offline evaluation code:
 
 Released model and public data dependencies:
 
-- Vista/QUASAR RL checkpoint: `Benyucong/rl_quantum_4b` (`https://huggingface.co/Benyucong/rl_quantum_4b`).
+- Vista RL checkpoint: `Benyucong/rl_quantum_4b` (`https://huggingface.co/Benyucong/rl_quantum_4b`).
 - SFT initialization checkpoint: `Benyucong/sft_quantum_circuit_gen_4B` (`https://huggingface.co/Benyucong/sft_quantum_circuit_gen_4B`).
 - RL/evaluation dataset: `Benyucong/graph-data-quantum-rl` (`https://huggingface.co/datasets/Benyucong/graph-data-quantum-rl`).
 
@@ -84,9 +84,9 @@ The current checkout now includes graph-generation resources under `quantum-code
 
 These files support the dataset-construction side of the artifact. They do not replace the raw model-generation JSON files consumed by `quantum-code-generation/code/evaluation/src/evaluate_samples.py`.
 
-## Required Files to Add Before Submission
+## Completeness Notes for Results Reproduced
 
-The current checkout contains documentation, training code, evaluation code, and precomputed summary files, but it does not contain all files needed for full reproduction. Add these before submitting to CAIS AE:
+The current checkout contains documentation, training code, evaluation code, extracted paper tables, graph-generation resources, and precomputed summary files. To support a full Results Reproduced review from GitHub, the package should also include:
 
 - Raw generation JSON files under `quantum-code-generation/code/generation/out/`, one per model/run, matching the paper tables.
 - Final metric summaries for Vista Pass@1 and Pass@10, plus baselines, matching Table 1 and Table 2 of the paper.
@@ -95,9 +95,9 @@ The current checkout contains documentation, training code, evaluation code, and
   - `data/rl-qasm/graph-data-quantum-rl-linus/test.parquet`
 - Any hardware/QPU logs needed for the real-QPU deployment claims, if those claims are included in the AE target.
 
-Already present after the latest data addition:
+Already present:
 
-- Public Vista/QUASAR RL checkpoint: `Benyucong/rl_quantum_4b`.
+- Public Vista RL checkpoint: `Benyucong/rl_quantum_4b`.
 - Public SFT checkpoint: `Benyucong/sft_quantum_circuit_gen_4B`.
 - Public RL/evaluation dataset: `Benyucong/graph-data-quantum-rl`.
 - Graph-generation pickle inputs under `quantum-code-generation/code/data_generation/src/algorithms/`.
@@ -108,12 +108,10 @@ Already present after the latest data addition:
 Artifact development environment reported in the paper:
 
 - Python: 3.10 or 3.11, depending on component.
-- Training framework: verl-tool with Ray, FSDP, vLLM, and GRPO.
+- Training framework: VerlTool/verl-tool with Ray, FSDP, vLLM, and GRPO.
 - Quantum stack: Qiskit 1.2.4, qiskit-aer 0.16.1, qiskit-qasm3-import 0.5.1.
 - Main training hardware: 128 AMD GPUs with 1,024 CPU cores, reported as 48 hours for the full 4B GRPO run in the paper appendix.
 - Local scripts in this repository also include single-node Slurm wrappers for 4 or 8 GPU runs; use those for sanity checks or smaller reproductions.
-
-Before final submission, standardize the artifact and camera-ready text on the exact GPU model name. The submitted PDF text mentions both MI250X and MI205X in different places.
 
 ## Minimal Working Example
 
@@ -308,11 +306,11 @@ Expected artifacts:
 
 ## Paper Claim Mapping
 
-| Claim | Paper location | Artifact path | Reproduction command | Expected result |
+| Claim | Paper location | Artifact path | Reproduction command | Reported paper result |
 | --- | --- | --- | --- | --- |
-| Vista improves Pass@1 and Pass@10 feasibility, objective verification, behavior RE, and utility HQCR over LLM, quantum-specific, GRPO, and Verl-Tool baselines. | Table 1, Section 6.2 | `quantum-code-generation/code/evaluation/src/evaluate_samples.py`; raw generation JSONs; `evaluation/out` | Level 1 for each model and Pass@K setting | Vista Table 1 target: Pass@1 SCR 99.31%, SREV 22.41%, RE 11.61, HQCR 17.24%; Pass@10 SCR 100%, SREV 33.10%, RE 8.48, HQCR 27.24%. |
+| Vista improves Pass@1 and Pass@10 feasibility, objective verification, behavior RE, and utility HQCR over LLM, quantum-specific, GRPO, and Verl-Tool baselines. | Table 1, Section 6.2 | `quantum-code-generation/code/evaluation/src/evaluate_samples.py`; raw generation JSONs; `quantum-code-generation/code/evaluation/out/` | Level 1 for each model and Pass@K setting | Reported Vista Table 1 values: Pass@1 SCR 99.31%, SREV 22.41%, RE 11.61, HQCR 17.24%; Pass@10 SCR 100%, SREV 33.10%, RE 8.48, HQCR 27.24%. |
 | Hierarchical reward components matter; removing RE causes the largest degradation. | Table 2, Section 6.3 | `verl_tool/servers/tools/utils/quantum_reward_cal.py`; ablation checkpoints or generation JSONs | Level 1 over full, w/o EV, w/o RE, w/o Opt, and validity-only outputs | Full Vista should exceed ablations; w/o RE should show the largest drop. |
-| Budget-aware gated evaluation reduces verifier cost while retaining semantic quality. | Figures 7-9, Section 6.4 | `quantum_reward_cal.py`; training logs; verifier timing logs | Recompute from included verifier timing logs or rerun training/evaluation with gating toggles | Paper target: average verifier time falls from 8.20s to 4.63s per iteration, a 1.77x speedup. |
+| Budget-aware gated evaluation reduces verifier cost while retaining semantic quality. | Figures 7-9, Section 6.4 | `quantum_reward_cal.py`; training logs; verifier timing logs | Recompute from included verifier timing logs or rerun training/evaluation with gating toggles | Average verifier time falls from 8.20s to 4.63s per iteration, a 1.77x speedup. |
 | Vista scales across graph optimization tasks and qubit/gate complexity. | Figures 2, 4, 5 | Raw generation JSONs with task/qubit/gate metadata | Group Level 1 results by primitive, qubit count, or gate count | Vista should maintain higher utility than baselines across most primitives and 8-16 qubits. |
 | Vista can be deployed on real QPU/hybrid systems. | Section 6.5, Figures 10-14 | Hardware execution logs, transpiled circuits, and postprocessed hardware results | Run the supplied hardware postprocessing script or inspect archived logs | Vista should preserve objective quality while reducing scheduled circuit duration. |
 
@@ -332,11 +330,3 @@ Expected artifacts:
 - Because `Benyucong/rl_quantum_4b` is public, evaluators with a suitable GPU can regenerate raw outputs; including the raw JSON files is still strongly recommended for a low-friction CAIS review.
 - The included summary files appear to be partial/older evaluation outputs and should not be presented as the final Table 1 reproduction until replaced with final paper-aligned outputs.
 - Some scripts are cluster-specific. When adapting them, update paths, Slurm partitions, module names, and GPU counts in one place before running.
-
-## Submission Checklist
-
-- [x] Replace the archive URL placeholder in this README with the GitHub repository URL.
-- [ ] Add raw generation files for Table 1 and Table 2.
-- [ ] Add hardware/QPU logs if Section 6.5 is part of the target.
-- [ ] Test the README commands on a clean machine or fresh container.
-- [ ] Archive the final artifact on Zenodo or an equivalent long-term archive if applying for Available.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run generation + evaluation for the Vista/QUASAR quantum artifact.
+# Run generation + evaluation for the Vista quantum artifact.
 #
 # This script is intentionally thin: it delegates model sampling to
 # quantum-code-generation/code/generation/generate_samples.py and metric

@@ -53,7 +53,7 @@ Regenerating model outputs requires a GPU-capable machine with enough memory for
 \renewcommand{\arraystretch}{1.08}
 \begin{tabular}{L{0.16\linewidth}L{0.33\linewidth}L{0.23\linewidth}L{0.22\linewidth}}
 \toprule
-Claim & Paper target & Artifact evidence & Reviewer action \\
+Claim & Reported result & Artifact evidence & Reviewer action \\
 \midrule
 End-to-end quality & Table 1: Pass@1 SCR 99.31\%, SREV 22.41\%, RE 11.61, HQCR 17.24\%; Pass@10 SCR 100\%, SREV 33.10\%, RE 8.48, HQCR 27.24\%. & Raw generation JSONs, \codepath{evaluate_samples.py}, extracted Table 1 CSV. & Recompute \codepath{summary_stats_*.json}; compare with Table 1. \\
 \midrule
