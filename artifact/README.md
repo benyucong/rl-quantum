@@ -48,7 +48,7 @@ Generation and offline evaluation code:
 - `artifact/scripts/draw_vista_figures.py`: reviewer-facing wrapper around `vista_draw/` that renders plots from plot-ready tables/logs and can regenerate objective-gap and relative-entropy plot inputs from fresh evaluation outputs.
 - `artifact/scripts/show_paper_tables.py`: dependency-free script for displaying extracted paper table values.
 - `artifact/requirements-figures.txt`: lightweight plotting dependencies for the `vista_draw/` figure scripts.
-- `artifact/tables/`: extracted CSV values for Table 1, Table 2, and Table 3 from `acm-cais26-paper217.pdf`.
+- `artifact/tables/`: extracted CSV values for Table 1, Table 2, and Table 3 from `acm-cais26-paper217.pdf`, plus the paper figure/table to artifact mapping.
 - `vista_draw/`: figure-generation scripts, plot-ready CSV/JSON inputs, and the current rendered paper figures.
 
 Released model and public data dependencies:
@@ -110,7 +110,7 @@ Artifact development environment reported in the paper:
 - Python: 3.10 or 3.11, depending on component.
 - Training framework: VerlTool/verl-tool with Ray, FSDP, vLLM, and GRPO.
 - Quantum stack: Qiskit 1.2.4, qiskit-aer 0.16.1, qiskit-qasm3-import 0.5.1.
-- Main training hardware: 128 AMD GPUs with 1,024 CPU cores, reported as 48 hours for the full 4B GRPO run in the paper appendix.
+- Main training hardware: 8 AMD MI250X GPUs or 8 NVIDIA H100 GPUs for the full 4B GRPO run.
 - Local scripts in this repository also include single-node Slurm wrappers for 4 or 8 GPU runs; use those for sanity checks or smaller reproductions.
 
 ## Minimal Working Example
@@ -234,6 +234,31 @@ The packaged all-plot workflow currently covers:
 
 If you regenerate plot-ready tables elsewhere, place them in an input directory with `dataset/*.csv` and optional `logs.csv`, then pass that directory with `--input-dir`. Fresh `evaluate_samples.py` output directly supports the objective-gap box plot and the relative-entropy threshold plot. The scalability, per-primitive, training-dynamics, verifier-efficiency, and hardware plots require their corresponding aggregate CSV/JSON tables or logs in the `vista_draw` layout.
 
+### Paper Figure and Table Map
+
+The same mapping is also stored as CSV in `artifact/tables/figure_artifact_map.csv`.
+
+| Paper item | Artifact task | Primary inputs | Script or code | Reviewer action |
+| --- | --- | --- | --- | --- |
+| Fig. 1: Vista design overview | `design_trace` | `examples/train/quantum/*`; `verl_tool/workers/reward_manager/quantum.py`; `verl_tool/servers/tools/quantum_cpu.py`; `verl_tool/servers/tools/utils/quantum_reward_cal.py` | Code inspection | Check that the figure components correspond to the training script, verifier tool, and reward manager. |
+| Fig. 2: per-primitive Utility/HQCR | `per_primitive` | `vista_draw/dataset/per_primitive_hqcr.csv` | `vista_draw/plot_per_primitive_breakdown.py` | `python3 artifact/scripts/draw_vista_figures.py --input-dir vista_draw --output-dir artifact_runs/paper_figures --only per_primitive --strict` |
+| Fig. 3: threshold and objective-gap robustness | `relative_entropy`, `box` | `vista_draw/dataset/relative_entropy_table.csv`; `vista_draw/dataset/box.csv` | `vista_draw/plot_relative_entropy.py`; `vista_draw/plot_box.py` | Run with `--only relative_entropy,box`; fresh evaluator output can regenerate these two plot inputs. |
+| Fig. 4: scaling by qubit count | `scalability_qubits` | `vista_draw/dataset/scalability_table_0.3.csv` | `vista_draw/plot_scalability.py` | Run with `--only scalability_qubits`. |
+| Fig. 5: scaling by gates and depth | `scalability_gates_depth` | `vista_draw/dataset/scalability_table_gates.csv`; `vista_draw/dataset/scalability_table_depth.csv` | `vista_draw/plot_scalability_gates_depth.py` | Run with `--only scalability_gates_depth`. |
+| Fig. 6: training dynamics | `training_dynamics` | `vista_draw/dataset/training_dynamics_table.csv`; `vista_draw/dataset/training_reward_dynamics_table.csv` | `vista_draw/plot_training_dynamics.py` | Run with `--only training_dynamics`. |
+| Fig. 7: verifier efficiency | `verifier_efficiency` | `vista_draw/dataset/verifier_efficiency_table.csv` | `vista_draw/plot_verifier_efficiency.py` | Run with `--only verifier_efficiency`. |
+| Fig. 8: budget-matched simulator comparison | `training_logs` | `vista_draw/logs.csv` | `vista_draw/make_plots.py` | Run with `--only training_logs`. |
+| Fig. 9: verifier wall-clock time by stage | `stage_cost` | `vista_draw/logs.csv` | `vista_draw/plot_verifier_stage_cost_breakdown.py` | Run with `--only stage_cost`. |
+| Fig. 10: hardware-level validation | `hardware_report` | `vista_draw/dataset/helmi_deploy_report_*.json` | Hardware postprocessing plot scripts | Run with `--only helmi_reward_stability,real_device_tradeoff` and inspect archived QPU log provenance. |
+| Fig. 11: end-to-end latency | `latency_breakdown` | `vista_draw/dataset/helmi_deploy_report_*.json` | `vista_draw/plot_latency_breakdown.py` | Run with `--only latency_breakdown`. |
+| Fig. 12: verifier-loop diagnostics | `helmi_reward_stability` | `vista_draw/dataset/helmi_deploy_report_*.json` | `vista_draw/plot_helmi_reward_stability.py` | Run with `--only helmi_reward_stability`. |
+| Fig. 13: budget-matched hybrid-testbed comparison | `training_logs` | `vista_draw/logs.csv` | `vista_draw/make_plots.py` | Run with `--only training_logs` and inspect the `budget_matched_q5_*` outputs. |
+| Fig. 14: quality-efficiency trade-off | `real_device_tradeoff` | `vista_draw/dataset/helmi_deploy_report_*.json` | `vista_draw/plot_real_device_quality_efficiency_tradeoff.py` | Run with `--only real_device_tradeoff`. |
+| Fig. 15: dataset statistics | `dataset_trace` | `quantum-code-generation/code/data_generation/src/algorithms/*/*_data.pkl`; `artifact/tables/table3_training_settings.csv` | Dataset inputs and table display script | Inspect packaged graph-generation inputs and Table 3; this is descriptive dataset provenance rather than a model-result plot. |
+| Table 1: Pass@K comparison | `metric_recompute` | Raw generation JSONs; `artifact/tables/table1_passk_comparison.csv` | `quantum-code-generation/code/evaluation/src/evaluate_samples.py` | Recompute metrics from raw generations and compare with the extracted Table 1 CSV. |
+| Table 2: reward ablation | `metric_recompute` | Ablation raw generation JSONs; `artifact/tables/table2_reward_ablation.csv` | `quantum-code-generation/code/evaluation/src/evaluate_samples.py` | Recompute each ablation and compare with the extracted Table 2 CSV. |
+| Table 3: training settings | `configuration_trace` | `artifact/tables/table3_training_settings.csv`; `examples/train/quantum/*` | `artifact/scripts/show_paper_tables.py`; training scripts | Display the CSV table and inspect the training scripts for matching settings. |
+
 ### Level 1: Recompute Metrics From Raw Generations
 
 Use this level for the main Results Reproduced target when raw generation JSONs are included.
@@ -295,7 +320,7 @@ bash examples/train/quantum/train_qwen_4B_quantum.sh
 
 Expected resources:
 
-- Full paper-scale training: about 48 hours on 128 AMD GPUs, according to the paper appendix.
+- Full paper-scale training: 8 AMD MI250X GPUs or 8 NVIDIA H100 GPUs.
 - Single-node sanity runs: 4 to 8 GPUs, with reduced batch size, rollout count, or epoch count.
 
 Expected artifacts:

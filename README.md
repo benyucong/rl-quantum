@@ -57,15 +57,16 @@ Expected behavior:
 
 The detailed artifact instructions are in [artifact/README.md](artifact/README.md). The compiled artifact appendix is [artifact/appendix.pdf](artifact/appendix.pdf).
 
-## Extracted Paper Tables
+## Extracted Paper Tables and Figure Map
 
-The paper table values are stored as CSVs:
+The paper table values and figure-to-artifact map are stored as CSVs:
 
 - [artifact/tables/table1_passk_comparison.csv](artifact/tables/table1_passk_comparison.csv)
 - [artifact/tables/table2_reward_ablation.csv](artifact/tables/table2_reward_ablation.csv)
 - [artifact/tables/table3_training_settings.csv](artifact/tables/table3_training_settings.csv)
+- [artifact/tables/figure_artifact_map.csv](artifact/tables/figure_artifact_map.csv)
 
-Display them as Markdown:
+Display the extracted paper tables as Markdown:
 
 ```bash
 python3 artifact/scripts/show_paper_tables.py table1
@@ -179,7 +180,7 @@ Fresh `evaluate_samples.py` output directly supports the objective-gap box plot 
 
 ## Train Vista
 
-Full training is expensive and is not expected for a quick artifact review. The paper-scale configuration fine-tunes a 4B model with GRPO and FSDP on a large AMD GPU cluster.
+Full training is expensive and is not expected for a quick artifact review. The paper-scale configuration fine-tunes a 4B model with GRPO and FSDP on 8 AMD MI250X GPUs or 8 NVIDIA H100 GPUs.
 
 Training entry points:
 
@@ -208,7 +209,7 @@ The staged verifier and reward implementation used by these scripts are in:
 | Recompute metrics from raw generation JSONs | No | Requires Qiskit/PennyLane evaluation dependencies. |
 | Redraw figures from packaged plot data | No | Requires Matplotlib, NumPy, and Pandas. |
 | Generate new OpenQASM outputs from `Benyucong/rl_quantum_4b` | Yes | Requires a GPU with enough memory for the 4B model. |
-| Full GRPO training | Yes | Requires large-scale multi-GPU resources. |
+| Full GRPO training | Yes | Paper-scale run used 8 AMD MI250X GPUs or 8 NVIDIA H100 GPUs. |
 
 ## Artifact Badge Note
 
