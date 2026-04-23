@@ -5,7 +5,7 @@ This repository contains the code and artifact materials for:
 **Vista: Verifier-in-the-Loop Agentic RL for Semantic Program Synthesis in Quantum Computing**  
 ACM CAIS 2026 submission #217
 
-Vista trains a language-model policy to generate OpenQASM 3.0 quantum circuits using staged verifier feedback. The verifier checks generated programs through progressively richer semantic stages: syntax/feasibility, behavior alignment, objective-value verification, and utility after downstream optimization. The repository includes the quantum training scripts, verifier/reward code, generation and evaluation scripts, paper table data, and figure-generation workflow.
+Vista trains a language-model policy to generate OpenQASM 3.0 quantum circuits using staged verifier feedback. The verifier checks generated programs through progressively richer semantic stages: syntax/feasibility, behavior alignment, objective-value verification, and utility after downstream optimization. The repository includes the quantum training scripts, verifier/reward code, generation and evaluation scripts, table data, and figure-generation workflow.
 
 The public artifact URL is:
 
@@ -23,10 +23,10 @@ https://github.com/benyucong/rl-quantum
 
 | Path | Purpose |
 | --- | --- |
-| `artifact/` | CAIS artifact README, appendix PDF/TeX, extracted paper tables, and reviewer-facing helper scripts. |
+| `artifact/` | CAIS artifact README, appendix PDF/TeX, extracted Tables, and reviewer-facing helper scripts. |
 | `artifact/scripts/run_quantum_experiment.sh` | Runs model generation plus evaluation, or evaluates an existing raw generation JSON. |
 | `artifact/scripts/draw_vista_figures.py` | Runs the `vista_draw/` plotting scripts in headless mode and can derive two plot tables from fresh evaluation output. |
-| `artifact/scripts/show_paper_tables.py` | Prints extracted paper Tables 1-3 as Markdown. |
+| `artifact/scripts/show_paper_tables.py` | Prints extracted Tables 1-3 as Markdown. |
 | `examples/train/quantum/` | Vista/quantum GRPO training scripts and Slurm launchers. |
 | `verl_tool/servers/tools/quantum_cpu.py` | Quantum verifier tool used during rollouts. |
 | `verl_tool/servers/tools/utils/quantum_reward_cal.py` | Staged quantum reward calculation. |
@@ -34,7 +34,7 @@ https://github.com/benyucong/rl-quantum
 | `quantum-code-generation/code/generation/` | Hugging Face/vLLM scripts for generating OpenQASM samples from checkpoints. |
 | `quantum-code-generation/code/evaluation/` | QASM parsing, simulation, and metric recomputation scripts. |
 | `quantum-code-generation/code/data_generation/` | Quantum graph-optimization data-generation utilities and included problem-instance inputs. |
-| `vista_draw/` | Plot scripts and plot-ready CSV/JSON inputs for the paper figures. |
+| `vista_draw/` | Plot scripts and plot-ready CSV/JSON inputs for Figures. |
 
 This repository is based on the VerlTool training framework, but the root README is intentionally focused on the Vista quantum artifact and reviewer workflow.
 
@@ -52,21 +52,21 @@ python3 artifact/scripts/summarize_eval_outputs.py quantum-code-generation/code/
 
 Expected behavior:
 
-- `show_paper_tables.py` prints the extracted values for paper Tables 1-3.
+- `show_paper_tables.py` prints the extracted values for Tables 1-3.
 - `summarize_eval_outputs.py` prints a compact Markdown summary of included `summary_stats_*.json` files.
 
 The detailed artifact instructions are in [artifact/README.md](artifact/README.md). The compiled artifact appendix is [artifact/appendix.pdf](artifact/appendix.pdf).
 
-## Extracted Paper Tables and Figure Map
+## Extracted Tables and Figure Map
 
-The paper table values and figure-to-artifact map are stored as CSVs:
+The Table values and figure-to-artifact map are stored as CSVs:
 
 - [artifact/tables/table1_passk_comparison.csv](artifact/tables/table1_passk_comparison.csv)
 - [artifact/tables/table2_reward_ablation.csv](artifact/tables/table2_reward_ablation.csv)
 - [artifact/tables/table3_training_settings.csv](artifact/tables/table3_training_settings.csv)
 - [artifact/tables/figure_artifact_map.csv](artifact/tables/figure_artifact_map.csv)
 
-Display the extracted paper tables as Markdown:
+Display the extracted Tables as Markdown:
 
 ```bash
 python3 artifact/scripts/show_paper_tables.py table1
@@ -126,7 +126,7 @@ The script writes:
 
 The default `generate_samples.py` script produces one completion per selected sample. Pass@10 reproduction requires archived Pass@10 raw generations or a generation script configured to sample ten completions per prompt.
 
-## Draw Paper Figures
+## Draw Figures
 
 Install lightweight plotting dependencies:
 
@@ -204,7 +204,7 @@ The staged verifier and reward implementation used by these scripts are in:
 
 | Task | GPU needed? | Notes |
 | --- | --- | --- |
-| Show extracted paper tables | No | Uses only Python standard library. |
+| Show extracted Tables | No | Uses only Python standard library. |
 | Summarize included evaluation JSONs | No | Uses only Python standard library. |
 | Recompute metrics from raw generation JSONs | No | Requires Qiskit/PennyLane evaluation dependencies. |
 | Redraw figures from packaged plot data | No | Requires Matplotlib, NumPy, and Pandas. |
@@ -217,4 +217,4 @@ For a GitHub-only CAIS artifact submission, the practical target is **Functional
 
 ## License and Upstream Base
 
-This repository retains the upstream framework code and license information from VerlTool where applicable. The Vista-specific artifact code, quantum verifier/reward integration, generation/evaluation wrappers, and paper table/figure utilities are provided for the CAIS 2026 artifact evaluation workflow.
+This repository retains the upstream framework code and license information from VerlTool where applicable. The Vista-specific artifact code, quantum verifier/reward integration, generation/evaluation wrappers, and table/figure utilities are provided for the CAIS 2026 artifact evaluation workflow.

@@ -8,6 +8,7 @@
 \pagestyle{plain}
 \newcommand{\codepath}[1]{\path{#1}}
 \newcommand{\mypar}[1]{\par\noindent\textbf{#1.}}
+\newcommand{\claimcell}[2]{\textbf{Reported result:} #1\par\textbf{Reviewer action:} #2}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 \title{Artifact Appendix: Vista: Verifier-in-the-Loop Agentic RL for Semantic Program Synthesis in Quantum Computing}
@@ -29,7 +30,7 @@ The main artifact components are grouped by role:
   \item \textbf{Model-output generation.} \codepath{quantum-code-generation/code/generation/} contains scripts for generating OpenQASM circuits from Vista and baseline checkpoints.
   \item \textbf{Offline evaluation and metric recomputation.} \codepath{quantum-code-generation/code/evaluation/} parses generated QASM, simulates circuits, computes relative entropy, checks expectation values, and writes summary statistics; \codepath{artifact/scripts/run_quantum_experiment.sh} is the reviewer wrapper for generation plus evaluation or evaluation of an existing raw generation file.
   \item \textbf{Dataset construction and packaged inputs.} \codepath{quantum-code-generation/code/data_generation/src/algorithms/} contains graph-generation source files and included pickle inputs for the supported graph optimization primitives.
-  \item \textbf{Figure and table reproduction.} \codepath{artifact/scripts/draw_vista_figures.py} and \codepath{vista_draw/} provide headless wrappers and plot-ready inputs for regenerating paper figures; \codepath{artifact/tables/} and \codepath{artifact/scripts/show_paper_tables.py} provide extracted CSV values for paper Tables 1--3 and the paper figure/table map.
+  \item \textbf{Figure and table reproduction.} \codepath{artifact/scripts/draw_vista_figures.py} and \codepath{vista_draw/} provide headless wrappers and plot-ready inputs for regenerating Figures; \codepath{artifact/tables/} and \codepath{artifact/scripts/show_paper_tables.py} provide extracted CSV values for Tables 1--3 and the figure/table map.
   \item \textbf{Released checkpoints and public data.} The artifact references the Hugging Face RL checkpoint \codepath{Benyucong/rl_quantum_4b}, SFT initialization checkpoint \codepath{Benyucong/sft_quantum_circuit_gen_4B}, and dataset \codepath{Benyucong/graph-data-quantum-rl}.
 \end{itemize}
 
@@ -51,17 +52,17 @@ Regenerating model outputs requires a GPU-capable machine with enough memory for
 \renewcommand{\arraystretch}{1.08}
 \begin{tabular}{L{0.31\columnwidth}L{0.61\columnwidth}}
 \toprule
-Claim & Reported result and reviewer action \\
+Claim & Result and action \\
 \midrule
-End-to-end quality & Paper Table 1 reports Vista Pass@1 SCR 99.31\%, SREV 22.41\%, RE 11.61, HQCR 17.24\%; Pass@10 SCR 100\%, SREV 33.10\%, RE 8.48, HQCR 27.24\%. Recompute \codepath{summary_stats_*.json} from raw generation JSONs with \codepath{evaluate_samples.py}. \\
+End-to-end quality & \claimcell{Reported Table 1 gives Vista Pass@1 SCR 99.31\%, SREV 22.41\%, RE 11.61, HQCR 17.24\%; Pass@10 SCR 100\%, SREV 33.10\%, RE 8.48, HQCR 27.24\%.}{Recompute \codepath{summary_stats_*.json} from raw generation JSONs with \codepath{evaluate_samples.py}.} \\
 \midrule
-Reward ablation & Paper Table 2 reports full Vista is best overall and removing RE causes the largest drop. Evaluate the full and ablation raw outputs with the same evaluator. \\
+Reward ablation & \claimcell{Reported Table 2 gives full Vista as best overall and removing RE as the largest drop.}{Evaluate the full and ablation raw outputs with the same evaluator.} \\
 \midrule
-Verifier efficiency & Figures 7--9 report verifier time drops from 8.20s to 4.63s per iteration, a 1.77x speedup. Inspect timing logs or rerun gated/non-gated variants under the same budget. \\
+Verifier efficiency & \claimcell{Figures 7--9 report verifier time drops from 8.20s to 4.63s per iteration, a 1.77x speedup.}{Inspect timing logs or rerun gated/non-gated variants under the same budget.} \\
 \midrule
-Scaling and robustness & Figures 2, 4, and 5 report stronger results across thresholds, graph primitives, and 8--16 qubit sizes. Redraw with \codepath{draw_vista_figures.py}. \\
+Scaling and robustness & \claimcell{Figures 2, 4, and 5 report stronger results across thresholds, graph primitives, and 8--16 qubit sizes.}{Redraw with \codepath{draw_vista_figures.py}.} \\
 \midrule
-Hardware deployment & Figures 10--14 report preserved objective quality with shorter scheduled circuit duration on real/emulated QPU backends. Inspect archived hardware logs or rerun postprocessing if QPU access is available. \\
+Hardware deployment & \claimcell{Figures 10--14 report preserved objective quality with shorter scheduled circuit duration on real/emulated QPU backends.}{Inspect archived hardware logs or rerun postprocessing if QPU access is available.} \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -76,7 +77,7 @@ python3 artifact/scripts/summarize_eval_outputs.py \
   quantum-code-generation/code/evaluation/out
 python3 artifact/scripts/show_paper_tables.py all
 \end{verbatim}
-It prints a summary of included precomputed evaluation files and the extracted paper Tables 1--3.
+It prints a summary of included precomputed evaluation files and the extracted Tables 1--3.
 
 \mypar{Fresh GPU run}
 This path generates new Vista samples, evaluates them, and draws the plots directly supported by fresh evaluator output:
@@ -95,7 +96,7 @@ python3 artifact/scripts/draw_vista_figures.py \
 The wrapper writes raw generations plus \codepath{summary_stats_VISTA.json}/\codepath{summary_VISTA_raw_data.csv}. The plotting wrapper converts that CSV into objective-gap and relative-entropy plot inputs.
 
 \mypar{All packaged figures}
-To redraw all packaged paper plots from \codepath{vista_draw} plot-ready CSV/JSON inputs and logs, run:
+To redraw all packaged Figures from \codepath{vista_draw} plot-ready CSV/JSON inputs and logs, run:
 \begin{verbatim}
 python3 artifact/scripts/draw_vista_figures.py \
   --input-dir vista_draw \
@@ -104,17 +105,17 @@ python3 artifact/scripts/draw_vista_figures.py \
 \end{verbatim}
 This runs the packaged plot tasks for objective gap, compilability, relative entropy, scalability, per-primitive breakdown, training dynamics, verifier efficiency, stage cost, latency, hardware reward stability, and real-device quality--efficiency trade-off.
 
-Table~\ref{tab:figure-map} maps the paper figures to the artifact tasks used by this wrapper. The complete script/input map is in \codepath{artifact/tables/figure_artifact_map.csv}.
+Table~\ref{tab:figure-map} maps Figures to the artifact tasks used by this wrapper. The complete script/input map is in \codepath{artifact/tables/figure_artifact_map.csv}.
 
 \begin{table}[H]
-\caption{Paper figure to artifact-task correspondence.}
+\caption{Figure-to-artifact task correspondence.}
 \label{tab:figure-map}
-\scriptsize
-\setlength{\tabcolsep}{2pt}
-\renewcommand{\arraystretch}{0.93}
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{1.0}
 \begin{tabular}{L{0.16\columnwidth}L{0.34\columnwidth}L{0.42\columnwidth}}
 \toprule
-Paper item & Artifact task & Main evidence \\
+Item & Artifact task & Main evidence \\
 \midrule
 Fig. 1 & \codepath{design_trace} & Training, verifier, and reward code inspection \\
 Fig. 2 & \codepath{per_primitive} & \codepath{per_primitive_hqcr.csv} \\
@@ -130,13 +131,13 @@ Fig. 11 & \codepath{latency_breakdown} & Archived hardware/QPU report JSON \\
 Fig. 12 & \codepath{helmi_reward_stability} & Archived hardware/QPU report JSON \\
 Fig. 13 & \codepath{training_logs} & \codepath{budget_matched_q5_*} outputs \\
 Fig. 14 & \codepath{real_device_tradeoff} & Hardware quality--efficiency table/report \\
-Fig. 15 & \codepath{dataset_trace} & Graph-generation pickles and paper Table 3 \\
+Fig. 15 & \codepath{dataset_trace} & Graph-generation pickles and Table 3 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\mypar{Paper table reproduction}
-The \codepath{show_paper_tables.py} command above is display-only. To reproduce paper Tables 1--2 from raw generated outputs, rerun the evaluator:
+\mypar{Table reproduction}
+The \codepath{show_paper_tables.py} command above is display-only. To reproduce Tables 1--2 from raw generated outputs, rerun the evaluator:
 \begin{verbatim}
 cd quantum-code-generation/code/evaluation
 python3 -m venv .venv-eval
@@ -148,7 +149,7 @@ python3 src/evaluate_samples.py \
   out \
   <MODEL>
 \end{verbatim}
-The command writes \codepath{summary_stats_<MODEL>.json} and \codepath{summary_<MODEL>_raw_data.csv}. Compare these outputs with the extracted paper table CSVs in \codepath{artifact/tables/}.
+The command writes \codepath{summary_stats_<MODEL>.json} and \codepath{summary_<MODEL>_raw_data.csv}. Compare these outputs with the extracted Table CSVs in \codepath{artifact/tables/}.
 
 \mypar{Model-output regeneration}
 Evaluators with GPU access can regenerate model outputs from the released checkpoint:

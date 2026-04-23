@@ -46,10 +46,10 @@ Generation and offline evaluation code:
 - `quantum-code-generation/code/evaluation/out/`: precomputed summary statistics included in this snapshot.
 - `artifact/scripts/run_quantum_experiment.sh`: reviewer-facing wrapper that runs generation and evaluation, or evaluates an existing raw generation JSON.
 - `artifact/scripts/draw_vista_figures.py`: reviewer-facing wrapper around `vista_draw/` that renders plots from plot-ready tables/logs and can regenerate objective-gap and relative-entropy plot inputs from fresh evaluation outputs.
-- `artifact/scripts/show_paper_tables.py`: dependency-free script for displaying extracted paper table values.
+- `artifact/scripts/show_paper_tables.py`: dependency-free script for displaying extracted Table values.
 - `artifact/requirements-figures.txt`: lightweight plotting dependencies for the `vista_draw/` figure scripts.
-- `artifact/tables/`: extracted CSV values for Table 1, Table 2, and Table 3 from `acm-cais26-paper217.pdf`, plus the paper figure/table to artifact mapping.
-- `vista_draw/`: figure-generation scripts, plot-ready CSV/JSON inputs, and the current rendered paper figures.
+- `artifact/tables/`: extracted CSV values for Table 1, Table 2, and Table 3 from `acm-cais26-paper217.pdf`, plus the figure/table to artifact mapping.
+- `vista_draw/`: figure-generation scripts, plot-ready CSV/JSON inputs, and the current rendered Figures.
 
 Released model and public data dependencies:
 
@@ -86,9 +86,9 @@ These files support the dataset-construction side of the artifact. They do not r
 
 ## Completeness Notes for Results Reproduced
 
-The current checkout contains documentation, training code, evaluation code, extracted paper tables, graph-generation resources, and precomputed summary files. To support a full Results Reproduced review from GitHub, the package should also include:
+The current checkout contains documentation, training code, evaluation code, extracted Tables, graph-generation resources, and precomputed summary files. To support a full Results Reproduced review from GitHub, the package should also include:
 
-- Raw generation JSON files under `quantum-code-generation/code/generation/out/`, one per model/run, matching the paper tables.
+- Raw generation JSON files under `quantum-code-generation/code/generation/out/`, one per model/run, matching the reported Tables.
 - Final metric summaries for Vista Pass@1 and Pass@10, plus baselines, matching Table 1 and Table 2 of the paper.
 - Either local training parquet files expected by `examples/train/quantum/train_qwen_4B_quantum.sh`, or a documented download/preprocessing step from `Benyucong/graph-data-quantum-rl`:
   - `data/rl-qasm/graph-data-quantum-rl-linus/train.parquet`
@@ -127,7 +127,7 @@ Expected behavior:
 
 - The script prints a Markdown table summarizing the included `summary_stats_*.json` files.
 - It reports sample count, syntax compilation rate, expectation verification success rate, average relative entropy, and the fraction of samples below the default relative-entropy threshold.
-- The table script prints extracted paper Tables 1-3 as Markdown from `artifact/tables/*.csv`.
+- The table script prints extracted Tables 1-3 as Markdown from `artifact/tables/*.csv`.
 - The summaries currently included in this checkout are useful as a parser sanity check, but they do not cover all final paper results. Add the final raw generation files and final summary files before requesting Results Reproduced.
 
 Optional verifier sanity check, after installing the evaluation dependencies:
@@ -205,7 +205,7 @@ Outputs:
 - `artifact_runs/reviewer_smoke/evaluation/`: `summary_stats_VISTA.json` and `summary_VISTA_raw_data.csv`.
 - `artifact_runs/reviewer_smoke/figures/`: regenerated objective-gap and relative-entropy plots based on the fresh evaluation output.
 
-To redraw the full paper-figure set from plot-ready inputs, use:
+To redraw the full Figure set from plot-ready inputs, use:
 
 ```bash
 python3 artifact/scripts/draw_vista_figures.py \
@@ -234,11 +234,11 @@ The packaged all-plot workflow currently covers:
 
 If you regenerate plot-ready tables elsewhere, place them in an input directory with `dataset/*.csv` and optional `logs.csv`, then pass that directory with `--input-dir`. Fresh `evaluate_samples.py` output directly supports the objective-gap box plot and the relative-entropy threshold plot. The scalability, per-primitive, training-dynamics, verifier-efficiency, and hardware plots require their corresponding aggregate CSV/JSON tables or logs in the `vista_draw` layout.
 
-### Paper Figure and Table Map
+### Figure and Table Map
 
 The same mapping is also stored as CSV in `artifact/tables/figure_artifact_map.csv`.
 
-| Paper item | Artifact task | Primary inputs | Script or code | Reviewer action |
+| Item | Artifact task | Primary inputs | Script or code | Reviewer action |
 | --- | --- | --- | --- | --- |
 | Fig. 1: Vista design overview | `design_trace` | `examples/train/quantum/*`; `verl_tool/workers/reward_manager/quantum.py`; `verl_tool/servers/tools/quantum_cpu.py`; `verl_tool/servers/tools/utils/quantum_reward_cal.py` | Code inspection | Check that the figure components correspond to the training script, verifier tool, and reward manager. |
 | Fig. 2: per-primitive Utility/HQCR | `per_primitive` | `vista_draw/dataset/per_primitive_hqcr.csv` | `vista_draw/plot_per_primitive_breakdown.py` | `python3 artifact/scripts/draw_vista_figures.py --input-dir vista_draw --output-dir artifact_runs/paper_figures --only per_primitive --strict` |
