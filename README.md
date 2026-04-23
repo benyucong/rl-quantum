@@ -164,9 +164,9 @@ The verified all-plot run covers these tasks:
 
 `box`, `compilability`, `relative_entropy`, `scalability_qubits`, `scalability_gates_depth`, `per_primitive`, `training_dynamics`, `verifier_efficiency`, `training_logs`, `stage_cost`, `latency_breakdown`, `helmi_reward_stability`, and `real_device_tradeoff`.
 
-### Plots From Fresh Evaluation Outputs
+### Plots From Checkpoint-Based Evaluation Outputs
 
-Render the objective-gap and relative-entropy plots from a fresh evaluation directory:
+Render the objective-gap and relative-entropy plots from a checkpoint-based evaluation directory:
 
 ```bash
 python3 artifact/scripts/draw_vista_figures.py \
@@ -176,7 +176,7 @@ python3 artifact/scripts/draw_vista_figures.py \
   --strict
 ```
 
-Fresh `evaluate_samples.py` output directly supports the objective-gap box plot and the relative-entropy threshold plot. The scalability, per-primitive, training-dynamics, verifier-efficiency, and hardware plots require their corresponding aggregate CSV/JSON tables or logs in the `vista_draw/` layout.
+Checkpoint-based `evaluate_samples.py` output directly supports the objective-gap box plot and the relative-entropy threshold plot. The scalability, per-primitive, training-dynamics, verifier-efficiency, and hardware plots require their corresponding aggregate CSV/JSON tables or logs in the `vista_draw/` layout.
 
 ## Train Vista
 
@@ -213,7 +213,7 @@ The staged verifier and reward implementation used by these scripts are in:
 
 ## Artifact Badge Note
 
-For a GitHub-only CAIS artifact submission, the practical target is **Functional + Results Reproduced** if raw generation outputs and final evaluation/plot data are included. CAIS's Available badge requires an archival, long-term, versioned storage target such as Zenodo rather than GitHub alone.
+Target **Available + Functional + Results Reproduced**. Functional and Results Reproduced require the raw generation outputs, final evaluation summaries, plot-ready data, and hardware logs described in the artifact README. Available requires a DOI-backed archive of the exact submitted snapshot, such as Zenodo, in addition to the GitHub repository.
 
 ## License and Upstream Base
 

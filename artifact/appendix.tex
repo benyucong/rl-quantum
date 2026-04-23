@@ -8,6 +8,7 @@
 \pagestyle{plain}
 \newcommand{\codepath}[1]{\path{#1}}
 \newcommand{\mypar}[1]{\par\noindent\textbf{#1.}}
+\newcommand{\taskstep}[2]{\par\noindent\textbullet\ \textbf{Step #1.} #2}
 \newcommand{\claimcell}[2]{\textbf{Reported result:} #1\par\textbf{Reviewer action:} #2}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
@@ -19,93 +20,61 @@
 \raggedbottom
 \maketitle
 
-\section{Artifact Overview}
-
-This artifact supports the CAIS 2026 paper ``Vista: Verifier-in-the-Loop Agentic RL for Semantic Program Synthesis in Quantum Computing.'' The artifact contains the training code for Vista, the staged OpenQASM verifier used during agentic reinforcement learning, generation scripts for Vista and baseline checkpoints, and offline evaluation scripts for reproducing the reported semantic metrics.
-
-The main artifact components are grouped by role:
-\begin{itemize}
-  \item \textbf{Training and RL orchestration.} \codepath{examples/train/quantum/} contains the GRPO/FSDP training scripts for the 4B quantum circuit model.
-  \item \textbf{Verifier and reward implementation.} \codepath{verl_tool/servers/tools/quantum_cpu.py} provides the quantum verifier service used during tool-augmented rollouts, and \codepath{verl_tool/servers/tools/utils/quantum_reward_cal.py} implements staged rewards for syntax feasibility, behavior similarity, expectation-value objective quality, and utility-oriented optimization.
-  \item \textbf{Model-output generation.} \codepath{quantum-code-generation/code/generation/} contains scripts for generating OpenQASM circuits from Vista and baseline checkpoints.
-  \item \textbf{Offline evaluation and metric recomputation.} \codepath{quantum-code-generation/code/evaluation/} parses generated QASM, simulates circuits, computes relative entropy, checks expectation values, and writes summary statistics; \codepath{artifact/scripts/run_quantum_experiment.sh} is the reviewer wrapper for generation plus evaluation or evaluation of an existing raw generation file.
-  \item \textbf{Dataset construction and packaged inputs.} \codepath{quantum-code-generation/code/data_generation/src/algorithms/} contains graph-generation source files and included pickle inputs for the supported graph optimization primitives.
-  \item \textbf{Figure and table reproduction.} \codepath{artifact/scripts/draw_vista_figures.py} and \codepath{vista_draw/} provide headless wrappers and plot-ready inputs for regenerating Figures; \codepath{artifact/tables/} and \codepath{artifact/scripts/show_paper_tables.py} provide extracted CSV values for Tables 1--3 and the figure/table map.
-  \item \textbf{Released checkpoints and public data.} The artifact references the Hugging Face RL checkpoint \codepath{Benyucong/rl_quantum_4b}, SFT initialization checkpoint \codepath{Benyucong/sft_quantum_circuit_gen_4B}, and dataset \codepath{Benyucong/graph-data-quantum-rl}.
-\end{itemize}
-
 \section{Badge Target}
 
-We request the Functional and Results Reproduced badges for a GitHub-only submission at \url{https://github.com/benyucong/rl-quantum}. CAIS's Available checklist requires a public archive with irrevocable versioning and long-term storage, such as Zenodo but not GitHub, so we do not rely on the Available badge unless a DOI-backed archive is added later. The repository includes public checkpoint and dataset links, and the final submitted version should include raw generated-circuit JSON files for all reported model runs plus precomputed logs/results.
+We target all three artifact badges: Available, Functional, and Results Reproduced. Repository: \url{https://github.com/benyucong/rl-quantum}.
 
 \section{Hardware and Software Requirements}
 
-The minimal artifact inspection path requires Python 3.10 or 3.11 and does not require a GPU. Recomputing evaluation metrics from raw generated circuits requires the Python packages listed in \codepath{quantum-code-generation/code/evaluation/requirements.txt}, including Qiskit 1.2.4, qiskit-aer 0.16.1, and qiskit-qasm3-import 0.5.1.
-
-Regenerating model outputs requires a GPU-capable machine with enough memory for the selected 3B/4B model checkpoint. Full Vista retraining is substantially more expensive: the paper-scale configuration fine-tunes a 4B model with GRPO and FSDP on 8 AMD MI250X GPUs or 8 NVIDIA H100 GPUs. The artifact also includes smaller single-node Slurm wrappers intended for sanity checks or partial reproduction.
-
-\section{Major Claims and Reproduction Plan}
-
 \begin{center}
-\footnotesize
+\scriptsize
 \setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.08}
-\begin{tabular}{L{0.31\columnwidth}L{0.61\columnwidth}}
+\renewcommand{\arraystretch}{1.02}
+\begin{tabular}{L{0.26\columnwidth}L{0.66\columnwidth}}
 \toprule
-Claim & Result and action \\
+Test mode & Requirement \\
 \midrule
-End-to-end quality & \claimcell{Reported Table 1 gives Vista Pass@1 SCR 99.31\%, SREV 22.41\%, RE 11.61, HQCR 17.24\%; Pass@10 SCR 100\%, SREV 33.10\%, RE 8.48, HQCR 27.24\%.}{Recompute \codepath{summary_stats_*.json} from raw generation JSONs with \codepath{evaluate_samples.py}.} \\
+CPU-only inspection & Python 3.10 or 3.11. No GPU is required for the quickest check, extracted Tables, or packaged-figure redraws. \\
 \midrule
-Reward ablation & \claimcell{Reported Table 2 gives full Vista as best overall and removing RE as the largest drop.}{Evaluate the full and ablation raw outputs with the same evaluator.} \\
+Evaluation stack & Install the packages in \codepath{quantum-code-generation/code/evaluation/requirements.txt}, including Qiskit 1.2.4, qiskit-aer 0.16.1, and qiskit-qasm3-import 0.5.1. \\
 \midrule
-Verifier efficiency & \claimcell{Figures 7--9 report verifier time drops from 8.20s to 4.63s per iteration, a 1.77x speedup.}{Inspect timing logs or rerun gated/non-gated variants under the same budget.} \\
+Generation & Regenerating model outputs requires a GPU-capable machine with enough memory for the selected 3B/4B checkpoint. \\
 \midrule
-Scaling and robustness & \claimcell{Figures 2, 4, and 5 report stronger results across thresholds, graph primitives, and 8--16 qubit sizes.}{Redraw with \codepath{draw_vista_figures.py}.} \\
+Optional live QPU rerun & Figures 10--14 can be inspected from archived hardware logs. A live rerun additionally requires provider credentials and API access for IBM or IQM cloud quantum computers, subject to queue and quota availability. \\
 \midrule
-Hardware deployment & \claimcell{Figures 10--14 report preserved objective quality with shorter scheduled circuit duration on real/emulated QPU backends.}{Inspect archived hardware logs or rerun postprocessing if QPU access is available.} \\
+Training / tested platform & Tested on the Aalto Triton HPC system, the LUMI HPC system, and MareNostrum5 hosted by BSC, Spain, in Linux + Slurm workflows with module-based environments such as \codepath{scicomp-python-env} and \codepath{scicomp-llm-env}. Paper-scale Vista training used 8 AMD MI250X GPUs or 8 NVIDIA H100 GPUs. Smaller single-node Slurm launchers are also included for sanity checks. \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\section{Evaluation Workflow}
+\section{Step by Step Reproduction Instructions}
 
-\mypar{Quickest check}
-This CPU-only check validates that the artifact is present and that included metric/table files can be parsed:
+\mypar{Quick check: CPU-only table and figure reproduction}
+This is the quickest way to inspect the artifact, display the packaged Tables, and regenerate all packaged Figures on a CPU-only machine.
+Figures 10--14 are regenerated in this mode from archived hardware/QPU report JSONs, so no live cloud-QPU access is required.
+Expected hardware: any CPU-only machine.
+\taskstep{1}{Clone and enter the repository.}
 \begin{verbatim}
-cd /path/to/rl-quantum
+git clone https://github.com/benyucong/rl-quantum.git
+cd rl-quantum
+\end{verbatim}
+\taskstep{2}{Summarize the packaged evaluation outputs and show the extracted Tables 1--3.}
+\begin{verbatim}
 python3 artifact/scripts/summarize_eval_outputs.py \
   quantum-code-generation/code/evaluation/out
 python3 artifact/scripts/show_paper_tables.py all
 \end{verbatim}
-It prints a summary of included precomputed evaluation files and the extracted Tables 1--3.
-
-\mypar{Fresh GPU run}
-This path generates new Vista samples, evaluates them, and draws the plots directly supported by fresh evaluator output:
+\taskstep{3}{Create a plotting environment, install the lightweight figure dependencies, and redraw the packaged figures from \codepath{vista_draw}.}
 \begin{verbatim}
-bash artifact/scripts/run_quantum_experiment.sh \
-  --n-samples 50 \
-  --out-dir artifact_runs/reviewer_smoke
-EVAL_DIR=artifact_runs/reviewer_smoke/evaluation
-FIG_DIR=artifact_runs/reviewer_smoke/figures
-python3 artifact/scripts/draw_vista_figures.py \
-  --evaluation-dir "$EVAL_DIR" \
-  --only box,relative_entropy \
-  --output-dir "$FIG_DIR" \
-  --strict
-\end{verbatim}
-The wrapper writes raw generations plus \codepath{summary_stats_VISTA.json}/\codepath{summary_VISTA_raw_data.csv}. The plotting wrapper converts that CSV into objective-gap and relative-entropy plot inputs.
-
-\mypar{All packaged figures}
-To redraw all packaged Figures from \codepath{vista_draw} plot-ready CSV/JSON inputs and logs, run:
-\begin{verbatim}
+python3 -m venv .venv-fig
+source .venv-fig/bin/activate
+pip install -r artifact/requirements-figures.txt
 python3 artifact/scripts/draw_vista_figures.py \
   --input-dir vista_draw \
   --output-dir artifact_runs/paper_figures \
   --strict
 \end{verbatim}
-This runs the packaged plot tasks for objective gap, compilability, relative entropy, scalability, per-primitive breakdown, training dynamics, verifier efficiency, stage cost, latency, hardware reward stability, and real-device quality--efficiency trade-off.
-
-Table~\ref{tab:figure-map} maps Figures to the artifact tasks used by this wrapper. The complete script/input map is in \codepath{artifact/tables/figure_artifact_map.csv}.
+Table~\ref{tab:figure-map} maps Figures to the corresponding artifact tasks. The complete script/input map is in \codepath{artifact/tables/figure_artifact_map.csv}.
 
 \begin{table}[H]
 \caption{Figure-to-artifact task correspondence.}
@@ -136,41 +105,96 @@ Fig. 15 & \codepath{dataset_trace} & Graph-generation pickles and Table 3 \\
 \end{tabular}
 \end{table}
 
-\mypar{Table reproduction}
-The \codepath{show_paper_tables.py} command above is display-only. To reproduce Tables 1--2 from raw generated outputs, rerun the evaluator:
+\mypar{Reproduction 1: Checkpoint-based}
+This reproduction path uses the released checkpoint to generate new outputs, evaluate them, and redraw the evaluator-backed plots.
+Expected hardware: one GPU machine with enough memory for the released 4B checkpoint.
+\taskstep{1}{Clone and enter the repository.}
 \begin{verbatim}
-cd quantum-code-generation/code/evaluation
-python3 -m venv .venv-eval
-source .venv-eval/bin/activate
-pip install -r requirements.txt
-GEN_JSON=../generation/out/<RAW_GENERATION_JSON>
-python3 src/evaluate_samples.py \
-  "$GEN_JSON" \
-  out \
-  <MODEL>
+git clone https://github.com/benyucong/rl-quantum.git
+cd rl-quantum
 \end{verbatim}
-The command writes \codepath{summary_stats_<MODEL>.json} and \codepath{summary_<MODEL>_raw_data.csv}. Compare these outputs with the extracted Table CSVs in \codepath{artifact/tables/}.
-
-\mypar{Model-output regeneration}
-Evaluators with GPU access can regenerate model outputs from the released checkpoint:
+\taskstep{2}{Create an environment and install the generation, evaluation, and figure dependencies.}
 \begin{verbatim}
+python3 -m venv .venv-ae
+source .venv-ae/bin/activate
+pip install -r artifact/requirements-figures.txt
 cd quantum-code-generation/code/generation
-python3 -m venv .venv-gen
-source .venv-gen/bin/activate
 pip install -r requirements.txt
-python3 generate_samples.py \
-  --uid cais26 \
-  --model_path Benyucong/rl_quantum_4b \
-  --dataset Benyucong/graph-data-quantum-rl \
-  --n_samples 200
+cd ../evaluation
+pip install -r requirements.txt
+cd ../../..
+\end{verbatim}
+\taskstep{3}{Generate checkpoint outputs, evaluate them, and redraw the evaluator-backed plots.}
+\begin{verbatim}
+bash artifact/scripts/run_quantum_experiment.sh \
+  --n-samples 50 \
+  --out-dir artifact_runs/reviewer_smoke
+EVAL_DIR=artifact_runs/reviewer_smoke/evaluation
+FIG_DIR=artifact_runs/reviewer_smoke/figures
+python3 artifact/scripts/draw_vista_figures.py \
+  --evaluation-dir "$EVAL_DIR" \
+  --only box,relative_entropy \
+  --output-dir "$FIG_DIR" \
+  --strict
 \end{verbatim}
 
-\section{Notes for the AEC}
+\mypar{Reproduction 2: Retrain-based}
+This reproduction path launches GRPO/FSDP retraining from the training scripts and is intended only for evaluators with access to large-scale GPU resources.
+Expected hardware: paper-scale retraining used 8 AMD MI250X GPUs or 8 NVIDIA H100 GPUs.
+\taskstep{1}{Clone and enter the repository.}
+\begin{verbatim}
+git clone https://github.com/benyucong/rl-quantum.git
+cd rl-quantum
+\end{verbatim}
+\taskstep{2}{Activate the training environment and set the Hugging Face cache path.}
+\begin{verbatim}
+source .venv/bin/activate
+export HF_HOME=$(pwd)/data/huggingface
+\end{verbatim}
+\taskstep{3}{Launch retraining directly or submit a cluster wrapper.}
+\begin{verbatim}
+bash examples/train/quantum/train_qwen_4B_quantum.sh
+# or use a cluster launcher:
+# sbatch examples/train/quantum/train_hpc.sh
+# sbatch examples/train/quantum/train_mn5.sh
+\end{verbatim}
 
-Full retraining is not expected for kick-the-tires because it requires a large GPU cluster. The intended reproducibility path is to use the released checkpoint and raw generation outputs, then rerun the deterministic evaluation scripts. Real-QPU experiments depend on external hardware availability and should be evaluated from archived hardware logs unless the AEC explicitly requests a live run.
+\section{Evaluation Claims and Reproduction Plan}
 
-The current artifact includes graph-generation pickle inputs, precomputed summary JSON/CSV files, the public RL checkpoint \codepath{Benyucong/rl_quantum_4b}, the public SFT checkpoint \codepath{Benyucong/sft_quantum_circuit_gen_4B}, and the public dataset \codepath{Benyucong/graph-data-quantum-rl}. For a low-friction Results Reproduced evaluation, the final archive should also include the raw generated-circuit JSON files used as inputs to \codepath{evaluate_samples.py}.
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{L{0.31\columnwidth}L{0.61\columnwidth}}
+\toprule
+Claim & Result and action \\
+\midrule
+End-to-end quality & \claimcell{Reported Table 1 gives Vista Pass@1 SCR 99.31\%, SREV 22.41\%, RE 11.61, HQCR 17.24\%; Pass@10 SCR 100\%, SREV 33.10\%, RE 8.48, HQCR 27.24\%.}{Recompute \codepath{summary_stats_*.json} from raw generation JSONs with \codepath{evaluate_samples.py}.} \\
+\midrule
+Reward ablation & \claimcell{Reported Table 2 gives full Vista as best overall and removing RE as the largest drop.}{Evaluate the full and ablation raw outputs with the same evaluator.} \\
+\midrule
+Verifier efficiency & \claimcell{Figures 7--9 report verifier time drops from 8.20s to 4.63s per iteration, a 1.77x speedup.}{Inspect timing logs or rerun gated/non-gated variants under the same budget.} \\
+\midrule
+Scaling and robustness & \claimcell{Figures 2, 4, and 5 report stronger results across thresholds, graph primitives, and 8--16 qubit sizes.}{Redraw with \codepath{draw_vista_figures.py}.} \\
+\midrule
+Hardware deployment & \claimcell{Figures 10--14 report preserved objective quality with shorter scheduled circuit duration on real/emulated QPU backends.}{Inspect archived hardware logs; a live rerun additionally needs IBM/IQM cloud-QPU API credentials and queue access.} \\
+\bottomrule
+\end{tabular}
+\end{center}
 
-The submitted artifact URL is \url{https://github.com/benyucong/rl-quantum}. If a DOI-backed archive is added later, list that archive URL in HotCRP as well.
+\section{Artifact Overview}
+
+This artifact supports the CAIS 2026 paper ``Vista: Verifier-in-the-Loop Agentic RL for Semantic Program Synthesis in Quantum Computing.'' The artifact contains the training code for Vista, the staged OpenQASM verifier used during agentic reinforcement learning, generation scripts for Vista and baseline checkpoints, and offline evaluation scripts for reproducing the reported semantic metrics.
+
+The main artifact components are grouped by role:
+\begin{itemize}
+  \item \textbf{Training and RL orchestration.} \codepath{examples/train/quantum/} contains the GRPO/FSDP training scripts for the 4B quantum circuit model.
+  \item \textbf{Verifier and reward implementation.} \codepath{verl_tool/servers/tools/quantum_cpu.py} provides the quantum verifier service used during tool-augmented rollouts, and \codepath{verl_tool/servers/tools/utils/quantum_reward_cal.py} implements staged rewards for syntax feasibility, behavior similarity, expectation-value objective quality, and utility-oriented optimization.
+  \item \textbf{Model-output generation.} \codepath{quantum-code-generation/code/generation/} contains scripts for generating OpenQASM circuits from Vista and baseline checkpoints.
+  \item \textbf{Offline evaluation and metric recomputation.} \codepath{quantum-code-generation/code/evaluation/} parses generated QASM, simulates circuits, computes relative entropy, checks expectation values, and writes summary statistics; \codepath{artifact/scripts/run_quantum_experiment.sh} is the reviewer wrapper for generation plus evaluation or evaluation of an existing raw generation file.
+  \item \textbf{Dataset construction and packaged inputs.} \codepath{quantum-code-generation/code/data_generation/src/algorithms/} contains graph-generation source files and included pickle inputs for the supported graph optimization primitives.
+  \item \textbf{Figure and table reproduction.} \codepath{artifact/scripts/draw_vista_figures.py} and \codepath{vista_draw/} provide headless wrappers and plot-ready inputs for regenerating Figures; \codepath{artifact/tables/} and \codepath{artifact/scripts/show_paper_tables.py} provide extracted CSV values for Tables 1--3 and the figure/table map.
+  \item \textbf{Released checkpoints and public data.} The artifact references the Hugging Face RL checkpoint \codepath{Benyucong/rl_quantum_4b}, SFT initialization checkpoint \codepath{Benyucong/sft_quantum_circuit_gen_4B}, and dataset \codepath{Benyucong/graph-data-quantum-rl}.
+\end{itemize}
 
 \end{document}

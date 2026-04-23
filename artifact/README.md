@@ -6,13 +6,13 @@ This document is the evaluator-facing README for the artifact. It is written to 
 
 ## Badge Target and Artifact URL
 
-For a GitHub-only submission, request Functional + Results Reproduced only if the repository includes the raw generation outputs and final evaluation/plot data needed to reproduce the paper results. If those raw outputs are absent and reviewers must regenerate them from the 4B checkpoint, the realistic GitHub-only target is Functional.
+Target all three CAIS artifact badges: Available + Functional + Results Reproduced. Functional and Results Reproduced depend on the repository including the raw generation outputs, final evaluation summaries, plot-ready data, and hardware logs needed to reproduce the reported results.
 
-Use this repository as the artifact URL:
+Use this repository as the primary artifact/development URL:
 
 - `https://github.com/benyucong/rl-quantum`
 
-CAIS's Available checklist requires a public archive with irrevocable versioning and long-term storage, "such as Zenodo but not GitHub." Therefore, if the artifact is submitted only as a GitHub repository, do not rely on receiving the Available badge. If you later create a Zenodo archive or another DOI-backed archive for the exact repository snapshot, then the target can be upgraded to Available + Functional + Results Reproduced.
+For the Available badge, also create a public DOI-backed archive for the exact submitted snapshot, such as Zenodo, and list that archive in HotCRP together with the GitHub repository. GitHub remains useful as the working artifact URL, but the persistent archive is what makes the Available target defensible.
 
 The Vista checkpoint is public on Hugging Face, but including raw generated-circuit JSON files is still the recommended path for a low-friction Results Reproduced review.
 
@@ -21,7 +21,8 @@ The Vista checkpoint is public on Hugging Face, but including raw generated-circ
 Use this information in the CAIS AE submission form.
 
 - Artifact URL or package: `https://github.com/benyucong/rl-quantum`
-- Requested badges: Functional + Results Reproduced, assuming the GitHub repository includes the public checkpoint/dataset links, raw generation outputs, and logs described below.
+- Persistent archive URL: `<TO_FILL: DOI-backed archive URL for the final submitted snapshot>`
+- Requested badges: Available + Functional + Results Reproduced, assuming the archive and GitHub repository include the public checkpoint/dataset links, raw generation outputs, final summaries, plot-ready data, and logs described below.
 - Artifact appendix: `artifact/appendix.tex`
 - Contact author availability: at least one contact author will monitor HotCRP during kick-the-tires and respond to AEC questions.
 - Tracking/anonymity: the artifact archive and any hosting page should not include analytics or reviewer tracking during evaluation.
@@ -232,7 +233,7 @@ The packaged all-plot workflow currently covers:
 - `helmi_reward_stability`
 - `real_device_tradeoff`
 
-If you regenerate plot-ready tables elsewhere, place them in an input directory with `dataset/*.csv` and optional `logs.csv`, then pass that directory with `--input-dir`. Fresh `evaluate_samples.py` output directly supports the objective-gap box plot and the relative-entropy threshold plot. The scalability, per-primitive, training-dynamics, verifier-efficiency, and hardware plots require their corresponding aggregate CSV/JSON tables or logs in the `vista_draw` layout.
+If you regenerate plot-ready tables elsewhere, place them in an input directory with `dataset/*.csv` and optional `logs.csv`, then pass that directory with `--input-dir`. Checkpoint-based `evaluate_samples.py` output directly supports the objective-gap box plot and the relative-entropy threshold plot. The scalability, per-primitive, training-dynamics, verifier-efficiency, and hardware plots require their corresponding aggregate CSV/JSON tables or logs in the `vista_draw` layout.
 
 ### Figure and Table Map
 
