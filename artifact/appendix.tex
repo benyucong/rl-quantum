@@ -1,4 +1,5 @@
 \documentclass[sigconf,screen,nonacm]{acmart}
+\usepackage{array}
 \usepackage{booktabs}
 \usepackage{xurl}
 
@@ -6,6 +7,7 @@
 \renewcommand\footnotetextcopyrightpermission[1]{}
 \pagestyle{plain}
 \newcommand{\codepath}[1]{\path{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 \title{Artifact Appendix: Vista: Verifier-in-the-Loop Agentic RL for Semantic Program Synthesis in Quantum Computing}
 \author{Submission ID \#217}
@@ -45,21 +47,23 @@ Regenerating model outputs requires a GPU-capable machine with enough memory for
 \section{Major Claims and Reproduction Plan}
 
 \begin{table*}[t]
-\small
+\footnotesize
 \centering
-\begin{tabular}{p{0.18\linewidth}p{0.25\linewidth}p{0.25\linewidth}p{0.22\linewidth}}
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{L{0.16\linewidth}L{0.33\linewidth}L{0.23\linewidth}L{0.22\linewidth}}
 \toprule
-Claim & Paper result & Artifact path & Reproduction method \\
+Claim & Paper target & Artifact evidence & Reviewer action \\
 \midrule
-End-to-end effectiveness & Vista reaches Pass@1 SCR 99.31\%, SREV 22.41\%, RE 11.61, HQCR 17.24\%; and Pass@10 SCR 100\%, SREV 33.10\%, RE 8.48, HQCR 27.24\%. & \codepath{quantum-code-generation/code/evaluation/src/evaluate_samples.py}; raw generation JSONs; \codepath{evaluation/out}. & Run the evaluator on each raw generation file and compare \codepath{summary_stats_*.json} against Table 1. \\
+End-to-end quality & Table 1: Pass@1 SCR 99.31\%, SREV 22.41\%, RE 11.61, HQCR 17.24\%; Pass@10 SCR 100\%, SREV 33.10\%, RE 8.48, HQCR 27.24\%. & Raw generation JSONs, \codepath{evaluate_samples.py}, extracted Table 1 CSV. & Recompute \codepath{summary_stats_*.json}; compare with Table 1. \\
 \midrule
-Reward ablation & Full Vista outperforms w/o EV, w/o RE, w/o Opt, and validity-only ablations; removing RE causes the largest drop. & \codepath{verl_tool/servers/tools/utils/quantum_reward_cal.py}; ablation raw outputs. & Evaluate raw ablation generations with the same evaluator and compare against Table 2. \\
+Reward ablation & Table 2: full Vista is best overall; removing RE causes the largest drop. & Ablation raw outputs, reward code, extracted Table 2 CSV. & Evaluate ablation JSONs with the same evaluator; compare with Table 2. \\
 \midrule
-Verifier efficiency & Gated evaluation reduces verifier time from 8.20s to 4.63s per iteration, a 1.77x speedup. & Training and verifier timing logs; reward/verifier scripts. & Inspect archived timing logs or rerun gated and non-gated variants under the same verifier budget. \\
+Verifier efficiency & Gating reduces verifier time from 8.20s to 4.63s per iteration, a 1.77x speedup. & Verifier timing logs, \codepath{logs.csv}, figure scripts. & Inspect logs or rerun gated/non-gated variants under the same budget. \\
 \midrule
-Scaling and robustness & Vista remains stronger across semantic thresholds, graph primitives, and 8--16 qubit problem sizes. & Raw generations with task metadata; evaluation outputs. & Group evaluation results by primitive, threshold, qubit count, and gate count. \\
+Scaling and robustness & Vista remains stronger across thresholds, graph primitives, and 8--16 qubit problem sizes. & Plot-ready scalability/per-primitive CSVs and raw metadata. & Redraw figures with \codepath{draw_vista_figures.py}. \\
 \midrule
-Hardware deployment & Vista preserves objective quality while reducing scheduled circuit duration on real or emulated QPU backends. & Archived hardware logs and transpiled circuits. & Inspect hardware logs or rerun the hardware postprocessing scripts if QPU access is available. \\
+Hardware deployment & Vista preserves objective quality while reducing scheduled circuit duration on real/emulated QPU backends. & Hardware JSON logs and hardware plotting scripts. & Inspect archived hardware logs or rerun postprocessing if QPU access is available. \\
 \bottomrule
 \end{tabular}
 \caption{Claim-to-artifact mapping for the Vista artifact.}
@@ -90,6 +94,15 @@ python3 artifact/scripts/draw_vista_figures.py \
   --strict
 \end{verbatim}
 The first command writes raw generations and \codepath{summary_stats_VISTA.json}/\codepath{summary_VISTA_raw_data.csv}. The second command converts that new evaluation CSV into the objective-gap and relative-entropy plot inputs and runs the existing figure scripts. The remaining paper figures can be redrawn from packaged plot-ready inputs with \codepath{draw_vista_figures.py --input-dir vista_draw}.
+
+To regenerate all packaged paper plots from the included \codepath{vista_draw} plot-ready CSV/JSON inputs and logs, evaluators can run:
+\begin{verbatim}
+python3 artifact/scripts/draw_vista_figures.py \
+  --input-dir vista_draw \
+  --output-dir artifact_runs/paper_figures \
+  --strict
+\end{verbatim}
+This single command runs the packaged plot tasks for objective gap, compilability, relative entropy, scalability, per-primitive breakdown, training dynamics, verifier efficiency, stage-cost breakdown, latency breakdown, hardware reward stability, and real-device quality--efficiency trade-off. Fresh \codepath{evaluate_samples.py} output directly supports only the objective-gap and relative-entropy plots unless the corresponding aggregate tables/logs are also regenerated.
 
 To recompute metrics from raw generated outputs, evaluators should run:
 \begin{verbatim}

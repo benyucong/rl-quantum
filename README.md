@@ -135,6 +135,8 @@ source .venv-fig/bin/activate
 pip install -r artifact/requirements-figures.txt
 ```
 
+### One Command for All Packaged Plots
+
 Render the full packaged figure set from `vista_draw/` plot-ready data:
 
 ```bash
@@ -143,6 +145,25 @@ python3 artifact/scripts/draw_vista_figures.py \
   --output-dir artifact_runs/paper_figures \
   --strict
 ```
+
+The command expects:
+
+- `vista_draw/dataset/*.csv`
+- `vista_draw/dataset/*.json`
+- `vista_draw/logs.csv`
+- the plotting scripts in `vista_draw/*.py`
+
+It writes:
+
+- regenerated plot data and figures under `artifact_runs/paper_figures/dataset/`
+- training/log-derived figures under `artifact_runs/paper_figures/figures/`
+- `artifact_runs/paper_figures/plot_status.json`
+
+The verified all-plot run covers these tasks:
+
+`box`, `compilability`, `relative_entropy`, `scalability_qubits`, `scalability_gates_depth`, `per_primitive`, `training_dynamics`, `verifier_efficiency`, `training_logs`, `stage_cost`, `latency_breakdown`, `helmi_reward_stability`, and `real_device_tradeoff`.
+
+### Plots From Fresh Evaluation Outputs
 
 Render the objective-gap and relative-entropy plots from a fresh evaluation directory:
 

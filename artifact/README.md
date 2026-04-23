@@ -216,6 +216,24 @@ python3 artifact/scripts/draw_vista_figures.py \
   --strict
 ```
 
+This single command is the all-packaged-plots entry point. It expects `vista_draw/dataset/*.csv`, `vista_draw/dataset/*.json`, optional `vista_draw/logs.csv`, and the plotting scripts in `vista_draw/*.py`. It writes regenerated figures and copied plot inputs under `artifact_runs/paper_figures/`, plus `artifact_runs/paper_figures/plot_status.json`.
+
+The packaged all-plot workflow currently covers:
+
+- `box`
+- `compilability`
+- `relative_entropy`
+- `scalability_qubits`
+- `scalability_gates_depth`
+- `per_primitive`
+- `training_dynamics`
+- `verifier_efficiency`
+- `training_logs`
+- `stage_cost`
+- `latency_breakdown`
+- `helmi_reward_stability`
+- `real_device_tradeoff`
+
 If you regenerate plot-ready tables elsewhere, place them in an input directory with `dataset/*.csv` and optional `logs.csv`, then pass that directory with `--input-dir`. Fresh `evaluate_samples.py` output directly supports the objective-gap box plot and the relative-entropy threshold plot. The scalability, per-primitive, training-dynamics, verifier-efficiency, and hardware plots require their corresponding aggregate CSV/JSON tables or logs in the `vista_draw` layout.
 
 ### Level 1: Recompute Metrics From Raw Generations
