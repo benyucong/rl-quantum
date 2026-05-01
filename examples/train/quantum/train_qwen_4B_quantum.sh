@@ -40,12 +40,25 @@ enable_mtrl=False # enable multi-turn training
 max_action_length=2048
 model_pretty_name=$(echo $model_name | tr '/' '_' | tr '[:upper:]' '[:lower:]')
 run_name_postfix="debug"
+reward_ablation=${VISTA_REWARD_ABLATION:-full}
+case "$reward_ablation" in
+    full|no_ev|no_re|no_opt|validity_only) ;;
+    *)
+        echo "Invalid VISTA_REWARD_ABLATION=$reward_ablation; expected full, no_ev, no_re, no_opt, or validity_only" >&2
+        exit 1
+        ;;
+esac
+export VISTA_REWARD_ABLATION=$reward_ablation
+if [ "$reward_ablation" != "full" ]; then
+    run_name_postfix="${run_name_postfix}-${reward_ablation}"
+fi
 if [ "$enable_agent" = "True" ]; then
     run_name="${reward_manager}-${strategy}-agent-${model_pretty_name}-${rl_alg}-n${n}-b${batch_size}-t${temperature}-lr${lr}${run_name_postfix}"
 else
     run_name="${reward_manager}-${strategy}-${model_pretty_name}-${rl_alg}-n${n}-b${batch_size}-t${temperature}-lr${lr}${run_name_postfix}"
 fi
 export VERL_RUN_ID=$run_name
+echo "VISTA_REWARD_ABLATION=$VISTA_REWARD_ABLATION"
 export NCCL_DEBUG=INFO
 export VLLM_USE_V1=1
 # rollout_mode='sync'

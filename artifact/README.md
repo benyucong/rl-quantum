@@ -12,7 +12,7 @@ Use this repository as the primary artifact/development URL:
 
 - `https://github.com/benyucong/rl-quantum`
 
-For the Available badge, also create a public DOI-backed archive for the exact submitted snapshot, such as Zenodo, and list that archive in HotCRP together with the GitHub repository. GitHub remains useful as the working artifact URL, but the persistent archive is what makes the Available target defensible.
+For the Available badge, list the Zenodo archive for the exact submitted snapshot in HotCRP together with the GitHub repository: `https://doi.org/10.5281/zenodo.19712131`.
 
 The Vista checkpoint is public on Hugging Face, but including raw generated-circuit JSON files is still the recommended path for a low-friction Results Reproduced review.
 
@@ -21,13 +21,13 @@ The Vista checkpoint is public on Hugging Face, but including raw generated-circ
 Use this information in the CAIS AE submission form.
 
 - Artifact URL or package: `https://github.com/benyucong/rl-quantum`
-- Persistent archive URL: `<TO_FILL: DOI-backed archive URL for the final submitted snapshot>`
+- Persistent archive URL: `https://doi.org/10.5281/zenodo.19712131`
 - Requested badges: Available + Functional + Results Reproduced, assuming the archive and GitHub repository include the public checkpoint/dataset links, raw generation outputs, final summaries, plot-ready data, and logs described below.
-- Artifact appendix: `artifact/appendix.tex`
+- Artifact appendix: `artifact/RL_Quantum_ACM_Journal/CAIS-26-AE/appendix.tex`
 - Contact author availability: at least one contact author will monitor HotCRP during kick-the-tires and respond to AEC questions.
 - Tracking/anonymity: the artifact archive and any hosting page should not include analytics or reviewer tracking during evaluation.
 - Short description: This artifact contains the Vista verifier-in-the-loop RL implementation for OpenQASM 3.0 synthesis, including training scripts, the staged quantum verifier, generation scripts, evaluation scripts, and precomputed outputs/logs for reproducing the paper's semantic quality and verifier-efficiency claims.
-- Special hardware: metric recomputation from raw generations is CPU-only. Regeneration from checkpoints requires GPU access. Full retraining requires a large GPU cluster and is provided for transparency, not as the kick-the-tires path. Real-QPU claims should be evaluated from archived hardware logs unless the AEC explicitly requests a live run.
+- Special hardware: re-evaluation from raw generations is CPU-only. Regeneration from checkpoints requires GPU access. Rerunning the Table 1 API baselines requires DeepSeek-V3, GPT-5, and GPT-4o provider API credentials and quota. Full retraining requires a large GPU cluster and is provided for transparency, not as the kick-the-tires path. Real-QPU claims should be evaluated from archived hardware logs unless the AEC explicitly requests a live run.
 
 ## Artifact Contents
 
@@ -47,6 +47,7 @@ Generation and offline evaluation code:
 - `quantum-code-generation/code/evaluation/out/`: precomputed summary statistics included in this snapshot.
 - `artifact/scripts/run_quantum_experiment.sh`: reviewer-facing wrapper that runs generation and evaluation, or evaluates an existing raw generation JSON.
 - `artifact/scripts/draw_vista_figures.py`: reviewer-facing wrapper around `vista_draw/` that renders plots from plot-ready tables/logs and can regenerate objective-gap and relative-entropy plot inputs from fresh evaluation outputs.
+- `artifact/scripts/build_artifact_report.py`: builds one PDF containing extracted Tables and regenerated plots.
 - `artifact/scripts/show_paper_tables.py`: dependency-free script for displaying extracted Table values.
 - `artifact/requirements-figures.txt`: lightweight plotting dependencies for the `vista_draw/` figure scripts.
 - `artifact/tables/`: extracted CSV values for Table 1, Table 2, and Table 3 from `acm-cais26-paper217.pdf`, plus the figure/table to artifact mapping.
@@ -162,6 +163,10 @@ python3 artifact/scripts/draw_vista_figures.py \
   --output-dir artifact_runs/figure_smoke \
   --only box,relative_entropy \
   --strict
+python3 artifact/scripts/build_artifact_report.py \
+  --figures-dir artifact_runs/figure_smoke \
+  --tables-dir artifact/tables \
+  --output artifact_runs/figure_smoke/all_figures_tables.pdf
 ```
 
 Expected behavior:
@@ -169,6 +174,7 @@ Expected behavior:
 - The wrapper runs the existing `vista_draw` scripts in headless mode.
 - It writes regenerated figures and copied plot inputs under `artifact_runs/figure_smoke/`.
 - It writes `artifact_runs/figure_smoke/plot_status.json` with the status of each requested plot task.
+- It writes `artifact_runs/figure_smoke/all_figures_tables.pdf` with the extracted Tables and regenerated plots.
 
 ## Full Reproduction Workflow
 
@@ -198,6 +204,10 @@ python3 artifact/scripts/draw_vista_figures.py \
   --only box,relative_entropy \
   --output-dir artifact_runs/reviewer_smoke/figures \
   --strict
+python3 artifact/scripts/build_artifact_report.py \
+  --figures-dir artifact_runs/reviewer_smoke/figures \
+  --tables-dir artifact/tables \
+  --output artifact_runs/reviewer_smoke/figures/all_figures_tables.pdf
 ```
 
 Outputs:
@@ -205,6 +215,7 @@ Outputs:
 - `artifact_runs/reviewer_smoke/generation/`: raw generated-circuit JSON.
 - `artifact_runs/reviewer_smoke/evaluation/`: `summary_stats_VISTA.json` and `summary_VISTA_raw_data.csv`.
 - `artifact_runs/reviewer_smoke/figures/`: regenerated objective-gap and relative-entropy plots based on the fresh evaluation output.
+- `artifact_runs/reviewer_smoke/figures/all_figures_tables.pdf`: single reviewer PDF containing extracted Tables and regenerated plots.
 
 To redraw the full Figure set from plot-ready inputs, use:
 
@@ -213,9 +224,13 @@ python3 artifact/scripts/draw_vista_figures.py \
   --input-dir vista_draw \
   --output-dir artifact_runs/paper_figures \
   --strict
+python3 artifact/scripts/build_artifact_report.py \
+  --figures-dir artifact_runs/paper_figures \
+  --tables-dir artifact/tables \
+  --output artifact_runs/paper_figures/all_figures_tables.pdf
 ```
 
-This single command is the all-packaged-plots entry point. It expects `vista_draw/dataset/*.csv`, `vista_draw/dataset/*.json`, optional `vista_draw/logs.csv`, and the plotting scripts in `vista_draw/*.py`. It writes regenerated figures and copied plot inputs under `artifact_runs/paper_figures/`, plus `artifact_runs/paper_figures/plot_status.json`.
+The first command is the all-packaged-plots entry point. It expects `vista_draw/dataset/*.csv`, `vista_draw/dataset/*.json`, optional `vista_draw/logs.csv`, and the plotting scripts in `vista_draw/*.py`. It writes regenerated figures and copied plot inputs under `artifact_runs/paper_figures/`, plus `artifact_runs/paper_figures/plot_status.json`. The second command writes `artifact_runs/paper_figures/all_figures_tables.pdf`.
 
 The packaged all-plot workflow currently covers:
 
@@ -256,8 +271,8 @@ The same mapping is also stored as CSV in `artifact/tables/figure_artifact_map.c
 | Fig. 13: budget-matched hybrid-testbed comparison | `training_logs` | `vista_draw/logs.csv` | `vista_draw/make_plots.py` | Run with `--only training_logs` and inspect the `budget_matched_q5_*` outputs. |
 | Fig. 14: quality-efficiency trade-off | `real_device_tradeoff` | `vista_draw/dataset/helmi_deploy_report_*.json` | `vista_draw/plot_real_device_quality_efficiency_tradeoff.py` | Run with `--only real_device_tradeoff`. |
 | Fig. 15: dataset statistics | `dataset_trace` | `quantum-code-generation/code/data_generation/src/algorithms/*/*_data.pkl`; `artifact/tables/table3_training_settings.csv` | Dataset inputs and table display script | Inspect packaged graph-generation inputs and Table 3; this is descriptive dataset provenance rather than a model-result plot. |
-| Table 1: Pass@K comparison | `metric_recompute` | Raw generation JSONs; `artifact/tables/table1_passk_comparison.csv` | `quantum-code-generation/code/evaluation/src/evaluate_samples.py` | Recompute metrics from raw generations and compare with the extracted Table 1 CSV. |
-| Table 2: reward ablation | `metric_recompute` | Ablation raw generation JSONs; `artifact/tables/table2_reward_ablation.csv` | `quantum-code-generation/code/evaluation/src/evaluate_samples.py` | Recompute each ablation and compare with the extracted Table 2 CSV. |
+| Table 1: Pass@K comparison | `table_reproduction` | Raw generation JSONs; `artifact/tables/table1_passk_comparison.csv` | `quantum-code-generation/code/evaluation/src/evaluate_samples.py` | Re-evaluate raw generations and compare with the extracted Table 1 CSV. |
+| Table 2: reward ablation | `table_reproduction` | Ablation raw generation JSONs; `artifact/tables/table2_reward_ablation.csv` | `quantum-code-generation/code/evaluation/src/evaluate_samples.py` | Re-evaluate each ablation and compare with the extracted Table 2 CSV. |
 | Table 3: training settings | `configuration_trace` | `artifact/tables/table3_training_settings.csv`; `examples/train/quantum/*` | `artifact/scripts/show_paper_tables.py`; training scripts | Display the CSV table and inspect the training scripts for matching settings. |
 
 ### Level 1: Recompute Metrics From Raw Generations
@@ -316,8 +331,17 @@ Use this level only if the evaluator has large-scale training resources.
 cd /path/to/rl-quantum
 source .venv/bin/activate
 export HF_HOME=$(pwd)/data/huggingface
+export VISTA_REWARD_ABLATION=full
 bash examples/train/quantum/train_qwen_4B_quantum.sh
 ```
+
+For the Table 2 reward ablation study, set `VISTA_REWARD_ABLATION` before launching training:
+
+- `full`: Full Vista, Val + RE + EV + Opt.
+- `no_ev`: w/o EV term, Val + RE + Opt.
+- `no_re`: w/o RE term, Val + EV + Opt.
+- `no_opt`: w/o Opt term, Val + RE + EV.
+- `validity_only`: Validity-only reward.
 
 Expected resources:
 

@@ -26,13 +26,14 @@ https://github.com/benyucong/rl-quantum
 | `artifact/` | CAIS artifact README, appendix PDF/TeX, extracted Tables, and reviewer-facing helper scripts. |
 | `artifact/scripts/run_quantum_experiment.sh` | Runs model generation plus evaluation, or evaluates an existing raw generation JSON. |
 | `artifact/scripts/draw_vista_figures.py` | Runs the `vista_draw/` plotting scripts in headless mode and can derive two plot tables from fresh evaluation output. |
+| `artifact/scripts/build_artifact_report.py` | Builds one PDF containing extracted tables and regenerated plots. |
 | `artifact/scripts/show_paper_tables.py` | Prints extracted Tables 1-3 as Markdown. |
 | `examples/train/quantum/` | Vista/quantum GRPO training scripts and Slurm launchers. |
 | `verl_tool/servers/tools/quantum_cpu.py` | Quantum verifier tool used during rollouts. |
 | `verl_tool/servers/tools/utils/quantum_reward_cal.py` | Staged quantum reward calculation. |
 | `verl_tool/workers/reward_manager/quantum.py` | Reward manager for quantum verifier observations. |
 | `quantum-code-generation/code/generation/` | Hugging Face/vLLM scripts for generating OpenQASM samples from checkpoints. |
-| `quantum-code-generation/code/evaluation/` | QASM parsing, simulation, and metric recomputation scripts. |
+| `quantum-code-generation/code/evaluation/` | QASM parsing, simulation, and metric evaluation scripts. |
 | `quantum-code-generation/code/data_generation/` | Quantum graph-optimization data-generation utilities and included problem-instance inputs. |
 | `vista_draw/` | Plot scripts and plot-ready CSV/JSON inputs for Figures. |
 
@@ -55,7 +56,7 @@ Expected behavior:
 - `show_paper_tables.py` prints the extracted values for Tables 1-3.
 - `summarize_eval_outputs.py` prints a compact Markdown summary of included `summary_stats_*.json` files.
 
-The detailed artifact instructions are in [artifact/README.md](artifact/README.md). The compiled artifact appendix is [artifact/appendix.pdf](artifact/appendix.pdf).
+The detailed artifact instructions are in [artifact/README.md](artifact/README.md). The formal compiled artifact appendix is [artifact/RL_Quantum_ACM_Journal/CAIS-26-AE/appendix.pdf](artifact/RL_Quantum_ACM_Journal/CAIS-26-AE/appendix.pdf).
 
 ## Extracted Tables and Figure Map
 
@@ -99,7 +100,7 @@ Expected outputs:
 - `out/summary_stats_<MODEL_LABEL>.json`
 - `out/summary_<MODEL_LABEL>_raw_data.csv`
 
-For low-friction artifact review, the raw generation JSONs used for Table 1 and Table 2 should be included in the repository. Without those JSONs, reviewers need GPU access to regenerate model outputs.
+For low-friction artifact review, the raw generation JSONs used for Table 1 and Table 2 should be included in the repository. Without those JSONs, reviewers need GPU access to regenerate model outputs. The Table 1 API baselines used DeepSeek-V3, GPT-5, and GPT-4o; rerunning them requires provider API credentials and quota, while re-evaluating archived raw JSONs does not.
 
 ## Generate New Model Outputs
 
@@ -145,6 +146,10 @@ python3 artifact/scripts/draw_vista_figures.py \
   --input-dir vista_draw \
   --output-dir artifact_runs/paper_figures \
   --strict
+python3 artifact/scripts/build_artifact_report.py \
+  --figures-dir artifact_runs/paper_figures \
+  --tables-dir artifact/tables \
+  --output artifact_runs/paper_figures/all_figures_tables.pdf
 ```
 
 The command expects:
@@ -159,6 +164,7 @@ It writes:
 - regenerated plot data and figures under `artifact_runs/paper_figures/dataset/`
 - training/log-derived figures under `artifact_runs/paper_figures/figures/`
 - `artifact_runs/paper_figures/plot_status.json`
+- `artifact_runs/paper_figures/all_figures_tables.pdf`
 
 The verified all-plot run covers these tasks:
 
@@ -174,6 +180,10 @@ python3 artifact/scripts/draw_vista_figures.py \
   --only box,relative_entropy \
   --output-dir artifact_runs/reviewer_smoke/figures \
   --strict
+python3 artifact/scripts/build_artifact_report.py \
+  --figures-dir artifact_runs/reviewer_smoke/figures \
+  --tables-dir artifact/tables \
+  --output artifact_runs/reviewer_smoke/figures/all_figures_tables.pdf
 ```
 
 Checkpoint-based `evaluate_samples.py` output directly supports the objective-gap box plot and the relative-entropy threshold plot. The scalability, per-primitive, training-dynamics, verifier-efficiency, and hardware plots require their corresponding aggregate CSV/JSON tables or logs in the `vista_draw/` layout.
@@ -185,8 +195,11 @@ Full training is expensive and is not expected for a quick artifact review. The 
 Training entry points:
 
 ```bash
+export VISTA_REWARD_ABLATION=full
 bash examples/train/quantum/train_qwen_4B_quantum.sh
 ```
+
+For the Table 2 reward ablation study, set `VISTA_REWARD_ABLATION` to one of `full`, `no_ev`, `no_re`, `no_opt`, or `validity_only` before launching training.
 
 Cluster launchers and variants:
 
@@ -207,13 +220,13 @@ The staged verifier and reward implementation used by these scripts are in:
 | Show extracted Tables | No | Uses only Python standard library. |
 | Summarize included evaluation JSONs | No | Uses only Python standard library. |
 | Recompute metrics from raw generation JSONs | No | Requires Qiskit/PennyLane evaluation dependencies. |
-| Redraw figures from packaged plot data | No | Requires Matplotlib, NumPy, and Pandas. |
+| Redraw figures from packaged plot data | No | Requires Matplotlib, NumPy, Pandas, and pypdf. |
 | Generate new OpenQASM outputs from `Benyucong/rl_quantum_4b` | Yes | Requires a GPU with enough memory for the 4B model. |
 | Full GRPO training | Yes | Paper-scale run used 8 AMD MI250X GPUs or 8 NVIDIA H100 GPUs. |
 
 ## Artifact Badge Note
 
-Target **Available + Functional + Results Reproduced**. Functional and Results Reproduced require the raw generation outputs, final evaluation summaries, plot-ready data, and hardware logs described in the artifact README. Available requires a DOI-backed archive of the exact submitted snapshot, such as Zenodo, in addition to the GitHub repository.
+Target **Available + Functional + Results Reproduced**. Functional and Results Reproduced require the raw generation outputs, final evaluation summaries, plot-ready data, and hardware logs described in the artifact README. Available is supported by the Zenodo archive for the submitted snapshot: `https://doi.org/10.5281/zenodo.19712131`.
 
 ## License and Upstream Base
 

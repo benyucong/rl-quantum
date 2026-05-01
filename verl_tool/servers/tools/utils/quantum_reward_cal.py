@@ -22,6 +22,7 @@ Prints:
 """
 
 import sys
+import os
 import numpy as np
 from qiskit.quantum_info import Statevector
 from qiskit_qasm3_import import parse
@@ -42,12 +43,38 @@ OPTIMIZATION_THRESHOLD = 0.9
 # guardrail (exact sim is exponential). Set None to disable.
 MAX_SAFE_QUBITS = None
 
+REWARD_ABLATION_ENV = "VISTA_REWARD_ABLATION"
+VALID_REWARD_ABLATIONS = {"full", "no_ev", "no_re", "no_opt", "validity_only"}
+
 # Tunables for mismatch severity
 BASE_MISMATCH_PENALTY = -0.2       # applied if n_llm != n_gt
 PER_EXTRA_QUBIT_PENALTY = -0.05     # per qubit count difference
 PER_ACTIVE_EXTRA_BONUS  = -0.1     # extra hit for each ACTIVE extra qubit
 
 # --------------------------- Utilities ----------------------------
+
+
+def reward_ablation_mode() -> str:
+    """Return the Table 2 reward-ablation mode selected by environment."""
+    raw_mode = os.getenv(REWARD_ABLATION_ENV, "full")
+    mode = raw_mode.strip().lower().replace("-", "_")
+    aliases = {
+        "vista": "full",
+        "none": "full",
+        "wo_ev": "no_ev",
+        "without_ev": "no_ev",
+        "wo_re": "no_re",
+        "without_re": "no_re",
+        "wo_opt": "no_opt",
+        "without_opt": "no_opt",
+        "valid": "validity_only",
+        "val": "validity_only",
+    }
+    mode = aliases.get(mode, mode)
+    if mode not in VALID_REWARD_ABLATIONS:
+        allowed = ", ".join(sorted(VALID_REWARD_ABLATIONS))
+        raise ValueError(f"Invalid {REWARD_ABLATION_ENV}={raw_mode!r}; expected one of: {allowed}")
+    return mode
 
 
 def construct_qiskit_hamiltonian(expression: str):
@@ -393,9 +420,13 @@ def optimization_reward_qiskit(qiskit_qc: str, H: str, smallest_eigenvalue: floa
 
 def reward_calculator(circuit_string: str, ground_truth: str,
                       cost_hamiltonian: str, smallest_eigenvalue: float, largest_eigenvalue: float) -> float:
+    ablation = reward_ablation_mode()
+
     # Syntax
     s = syntax_reward(circuit_string)
     if s < 0:
+        return s
+    if ablation == "validity_only":
         return s
 
     # Pre-parse and clean once for penalty computation
@@ -406,6 +437,15 @@ def reward_calculator(circuit_string: str, ground_truth: str,
     # print("start mismatch cal")
     mismatch = qubit_mismatch_penalty(llm_circ, gt_circ)
     # print("end mismatch cal")
+
+    if ablation == "no_re":
+        expectation_value = expectation_value_reward(
+            circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
+        if expectation_value > OPTIMIZATION_THRESHOLD:
+            optimization_value = optimization_reward_qiskit(
+                circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
+            return mismatch + 0.6 * expectation_value + 0.4 * optimization_value
+        return mismatch + expectation_value
 
     # Distribution similarity (shape-safe)
     # print("start dis cal")
@@ -420,17 +460,19 @@ def reward_calculator(circuit_string: str, ground_truth: str,
 
     # Decide whether to include expectation/optimization branches
     # If mismatched, be conservative: allow expectation, but only allow optimization if really strong
-    if dist_sim > OPTIMIZATION_THRESHOLD:
+    if ablation != "no_opt" and dist_sim > OPTIMIZATION_THRESHOLD:
         optimization_value = optimization_reward_qiskit(
             circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
         return mismatch + 0.6 * dist_weight * dist_sim + 0.4 * optimization_value
 
     if dist_sim < EXPECTED_THRESHOLD:
+        if ablation == "no_ev":
+            return mismatch + 0.30 * dist_weight * dist_sim
         # print("start exp cal")
         expectation_value = expectation_value_reward(
             circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
         # print("end exp cal")
-        if expectation_value > OPTIMIZATION_THRESHOLD:
+        if ablation != "no_opt" and expectation_value > OPTIMIZATION_THRESHOLD:
             optimization_value = optimization_reward_qiskit(
                 circuit_string, cost_hamiltonian, smallest_eigenvalue, largest_eigenvalue)
             return mismatch + 0.30 * dist_weight * dist_sim + 0.30 * expectation_value + 0.40 * optimization_value
